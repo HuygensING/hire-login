@@ -1,4 +1,5 @@
 import React from "react";
+import Auth from "./auth";
 
 class LoginFields extends React.Component {
 	constructor(props) {
@@ -11,25 +12,28 @@ class LoginFields extends React.Component {
 
 	onUserChange(ev) {
 		this.setState({username: ev.target.value});
-		console.log(this.state.username);
 	}
 
 	onPasswordChange(ev) {
 		this.setState({password: ev.target.value});
-		console.log(this.state.password);
 	}
 
-	clickit() {
-		console.log('ci')
+	onBasicLoginClick(ev) {
+		new Auth(this.state.username, this.state.password, this.props.basicUrl, this.props.VRE_ID).basicLogin();
 	}
 
 	render() {
-		let wl = window.location;
-		let hsURL = wl.origin + wl.pathname;
-		console.log("R", this)
-
+		let hsURL = window.location.href;
 		return  (
 			<div>
+				<form 
+				 	action={this.props.federatedUrl}
+				 	method="POST">
+				 	<input name="hsurl" value={hsURL} type="hidden" />
+				 	<button type="submit">
+				 		{this.props.federatedLabel}
+				 	</button>
+				</form>
 				<h3>{this.props.basicLabel}</h3>
 				<input
 					onChange={this.onUserChange.bind(this)}
@@ -40,19 +44,10 @@ class LoginFields extends React.Component {
 					type="password" 
 					placeholder={this.props.passwordPlaceholder} 
 					value={this.state.password} />
-				<button>{this.props.buttonLabel}</button>
+				<button onClick={this.onBasicLoginClick.bind(this)}>{this.props.buttonLabel}</button>
 			</div>
 		);
 	}
 }
 
 export default LoginFields;
-
-// <form 
-// 	action={this.props.federatedUrl}
-// 	method="POST">
-// 	<input name="hsurl" value={hsURL} type="hidden" />
-// 	<button type="submit">
-// 		{this.props.federatedLabel}
-// 	</button>
-// </form>
