@@ -1,6 +1,6 @@
 import React from "react";
-import qs from "qs";
 import LoginFields from "./login-fields";
+import Auth from "./auth";
 
 class LoginComponent extends React.Component {
 
@@ -8,47 +8,52 @@ class LoginComponent extends React.Component {
 		super(props);
 
 		this.state = {
-			opened: false
+			opened: false,
+			authenticated: false
 		}
-	}
 
-	componentWillMount() {
-		let params = qs.parse(window.location.search.substr(1));
-
-		
-		if(params.hsid) {
-			let hsid = params.hsid;
-			delete params.hsid;
-			let newQs = qs.stringify(params);
-			console.log(newQs);
-			let newLocation = window.location.pathname + (newQs.length === 0 ? '' :  '?' + newQs);
-			
-			console.log("TODO: save token " + hsid);
-
-			history.replaceState({}, 'tokened', newLocation);
-		}
+		let _self = this;
+		this.props.auth.init({
+			VRE_ID: this.props.VRE_ID,
+			url: this.props.basicUrl, 
+			userInfoUrl: this.props.userInfoUrl,
+			onAuthSuccess: this.onAuthSuccess.bind(this)
+		});
 	}
 
 	toggleLogin(ev) {
 		this.setState({opened: !this.state.opened});
 	}
 
-	render() {
-		let loginFields = this.state.opened ?
-			<LoginFields {...this.props} /> :
-			null;
+	onAuthSuccess() {
+		this.setState({authenticated: true});
+	}
 
-		return (
-			<div className="hire-forms-login">
-				<div>
-					<button className="login-toggle" 
-						onClick={this.toggleLogin.bind(this)}>
-						{this.props.buttonLabel}
-					</button>
+	render() {
+		if(this.state.authenticated) {
+			return (
+				<div className="hire-forms-login">
+					{this.props.loggedInLabel ? this.props.loggedInLabel + " " : ""}
+					{this.props.auth.userData.displayName}
 				</div>
-				{loginFields}
-			</div>
-		);
+			)
+		} else {
+			let loginFields = this.state.opened ?
+				<LoginFields {...this.props} onAuth={this.onAuthSuccess} /> :
+				null;
+
+			return (
+				<div className="hire-forms-login">
+					<div>
+						<button className="login-toggle" 
+							onClick={this.toggleLogin.bind(this)}>
+							{this.props.buttonLabel}
+						</button>
+					</div>
+					{loginFields}
+				</div>
+			);
+		}
 	}
 }
 
@@ -61,8 +66,11 @@ LoginComponent.propTypes = {
 	federatedLabel: React.PropTypes.string,
 	basicLabel: React.PropTypes.string,
 	userPlaceholder: React.PropTypes.string,
+	loggedInLabel: React.PropTypes.string,
 	passwordPlaceholder: React.PropTypes.string,
+	tokenType: React.PropTypes.string,
 	onChange: React.PropTypes.func,
+	auth: React.PropTypes.object
 }
 
 LoginComponent.defaultProps = {
@@ -71,6 +79,10 @@ LoginComponent.defaultProps = {
 	basicLabel: "Basic Login",
 	userPlaceholder: "Username or email address",
 	passwordPlaceholder: "Password",
+	loggedInLabel: "Logged in as",
+	tokenType: "",
+	VRE_ID: null,
+	auth: new Auth(),
 	onChange: function(payload) { console.log(payload); }
 };
 

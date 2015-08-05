@@ -855,54 +855,162 @@ module.exports = function (headers) {
   return result
 }
 },{"for-each":8,"trim":10}],12:[function(_dereq_,module,exports){
-'use strict';
+"use strict";
 
-Object.defineProperty(exports, '__esModule', {
+Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var _xhr = _dereq_('xhr');
 
 var _xhr2 = _interopRequireDefault(_xhr);
 
-var Auth = (function () {
-	function Auth(username, password, url, VRE_ID) {
-		_classCallCheck(this, Auth);
+var _qs = _dereq_("qs");
 
-		this.username = username;
-		this.password = password;
-		this.url = url;
-		this.VRE_ID = VRE_ID;
+var _qs2 = _interopRequireDefault(_qs);
+
+var Auth = (function () {
+	function Auth() {
+		_classCallCheck(this, Auth);
 	}
 
 	_createClass(Auth, [{
-		key: 'basicLogin',
-		value: function basicLogin() {
-			(0, _xhr2['default'])({
+		key: "init",
+		value: function init(opts) {
+			this.url = opts.url || null;
+			this.userInfoUrl = opts.userInfoUrl || null;
+			this.VRE_ID = opts.VRE_ID || "";
+			this.tokenPrefix = opts.tokenPrefix || "";
+			this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
+			this.userData = null;
+			this.onAuthSuccess = opts.onAuthSuccess || false;
+			console.log(this.onAuthSuccess);
+
+			this.checkTokenInUrl();
+			if (this.getToken() !== null) {
+				this.fetchUserData();
+			}
+		}
+	}, {
+		key: "fetchUserData",
+		value: function fetchUserData() {
+			var _self = this;
+			(0, _xhr2["default"])({
+				method: 'GET',
+				uri: this.userInfoUrl,
+				headers: {
+					Authorization: this.getToken(),
+					VRE_ID: this.VRE_ID
+				}
+			}, function (err, resp, body) {
+				if (resp.statusCode === 401) {
+					_self.handleFetchError(resp);
+				} else if (resp.statusCode === 200) {
+					_self.handleFetchSuccess(resp);
+				}
+			});
+		}
+	}, {
+		key: "handleFetchSuccess",
+		value: function handleFetchSuccess(data) {
+			this.userData = JSON.parse(data.body);
+			if (this.onAuthSuccess) {
+				this.onAuthSuccess();
+			}
+			console.log("FETCH success", this.userData);
+			console.log("Is authenticated", this.isAuthenticated());
+		}
+	}, {
+		key: "handleFetchError",
+		value: function handleFetchError(data) {
+			this.userData = null;
+			this.removeToken();
+			console.log("FETCH error", this.userData);
+			console.log("Is authenticated", this.isAuthenticated());
+		}
+	}, {
+		key: "basicLogin",
+		value: function basicLogin(username, password) {
+			var _self = this;
+			(0, _xhr2["default"])({
 				method: 'POST',
 				uri: this.url,
 				headers: {
-					Authorization: 'Basic ' + btoa(this.username + ':' + this.password)
+					Authorization: 'Basic ' + btoa(username + ':' + password)
 				}
 			}, function (err, resp, body) {
-				console.log(err, resp, body);
+				if (resp.statusCode === 401) {
+					_self.handleLoginError(resp);
+				} else if (resp.statusCode === 204) {
+					_self.handleLoginSuccess(resp);
+				}
 			});
+		}
+	}, {
+		key: "handleLoginError",
+		value: function handleLoginError(data) {
+			var body = JSON.parse(data.body);
+			this.removeToken();
+			alert(body.message);
+		}
+	}, {
+		key: "handleLoginSuccess",
+		value: function handleLoginSuccess(data) {
+			this.setToken(data.headers.x_auth_token);
+			this.fetchUserData();
+		}
+	}, {
+		key: "checkTokenInUrl",
+		value: function checkTokenInUrl() {
+			var params = _qs2["default"].parse(window.location.search.substr(1));
+
+			if (params.hsid) {
+				var hsid = params.hsid;
+				delete params.hsid;
+				var newQs = _qs2["default"].stringify(params);
+				console.log(newQs);
+				var newLocation = window.location.pathname + (newQs.length === 0 ? '' : '?' + newQs);
+
+				this.setToken(hsid);
+
+				history.replaceState(history.state, 'tokened', newLocation);
+			}
+		}
+	}, {
+		key: "setToken",
+		value: function setToken(token) {
+			localStorage.setItem(this.tokenPropertyName, this.tokenPrefix + token);
+		}
+	}, {
+		key: "getToken",
+		value: function getToken() {
+			return localStorage.getItem(this.tokenPropertyName);
+		}
+	}, {
+		key: "removeToken",
+		value: function removeToken() {
+			localStorage.removeItem(this.tokenPropertyName);
+		}
+	}, {
+		key: "isAuthenticated",
+		value: function isAuthenticated() {
+			return this.getToken() !== null && this.userData !== null;
 		}
 	}]);
 
 	return Auth;
 })();
 
-exports['default'] = Auth;
-module.exports = exports['default'];
+exports["default"] = Auth;
+module.exports = exports["default"];
 
-},{"xhr":5}],13:[function(_dereq_,module,exports){
+},{"qs":1,"xhr":5}],13:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -925,6 +1033,8 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
@@ -939,13 +1049,13 @@ var _react = _dereq_("react");
 
 var _react2 = _interopRequireDefault(_react);
 
-var _qs = _dereq_("qs");
-
-var _qs2 = _interopRequireDefault(_qs);
-
 var _loginFields = _dereq_("./login-fields");
 
 var _loginFields2 = _interopRequireDefault(_loginFields);
+
+var _auth = _dereq_("./auth");
+
+var _auth2 = _interopRequireDefault(_auth);
 
 var LoginComponent = (function (_React$Component) {
 	_inherits(LoginComponent, _React$Component);
@@ -956,52 +1066,58 @@ var LoginComponent = (function (_React$Component) {
 		_get(Object.getPrototypeOf(LoginComponent.prototype), "constructor", this).call(this, props);
 
 		this.state = {
-			opened: false
+			opened: false,
+			authenticated: false
 		};
+
+		var _self = this;
+		this.props.auth.init({
+			VRE_ID: this.props.VRE_ID,
+			url: this.props.basicUrl,
+			userInfoUrl: this.props.userInfoUrl,
+			onAuthSuccess: this.onAuthSuccess.bind(this)
+		});
 	}
 
 	_createClass(LoginComponent, [{
-		key: "componentWillMount",
-		value: function componentWillMount() {
-			var params = _qs2["default"].parse(window.location.search.substr(1));
-
-			if (params.hsid) {
-				var hsid = params.hsid;
-				delete params.hsid;
-				var newQs = _qs2["default"].stringify(params);
-				console.log(newQs);
-				var newLocation = window.location.pathname + (newQs.length === 0 ? '' : '?' + newQs);
-
-				console.log("TODO: save token " + hsid);
-
-				history.replaceState({}, 'tokened', newLocation);
-			}
-		}
-	}, {
 		key: "toggleLogin",
 		value: function toggleLogin(ev) {
 			this.setState({ opened: !this.state.opened });
 		}
 	}, {
+		key: "onAuthSuccess",
+		value: function onAuthSuccess() {
+			this.setState({ authenticated: true });
+		}
+	}, {
 		key: "render",
 		value: function render() {
-			var loginFields = this.state.opened ? _react2["default"].createElement(_loginFields2["default"], this.props) : null;
-
-			return _react2["default"].createElement(
-				"div",
-				{ className: "hire-forms-login" },
-				_react2["default"].createElement(
+			if (this.state.authenticated) {
+				return _react2["default"].createElement(
 					"div",
-					null,
+					{ className: "hire-forms-login" },
+					this.props.loggedInLabel ? this.props.loggedInLabel + " " : "",
+					this.props.auth.userData.displayName
+				);
+			} else {
+				var loginFields = this.state.opened ? _react2["default"].createElement(_loginFields2["default"], _extends({}, this.props, { onAuth: this.onAuthSuccess })) : null;
+
+				return _react2["default"].createElement(
+					"div",
+					{ className: "hire-forms-login" },
 					_react2["default"].createElement(
-						"button",
-						{ className: "login-toggle",
-							onClick: this.toggleLogin.bind(this) },
-						this.props.buttonLabel
-					)
-				),
-				loginFields
-			);
+						"div",
+						null,
+						_react2["default"].createElement(
+							"button",
+							{ className: "login-toggle",
+								onClick: this.toggleLogin.bind(this) },
+							this.props.buttonLabel
+						)
+					),
+					loginFields
+				);
+			}
 		}
 	}]);
 
@@ -1017,8 +1133,11 @@ LoginComponent.propTypes = {
 	federatedLabel: _react2["default"].PropTypes.string,
 	basicLabel: _react2["default"].PropTypes.string,
 	userPlaceholder: _react2["default"].PropTypes.string,
+	loggedInLabel: _react2["default"].PropTypes.string,
 	passwordPlaceholder: _react2["default"].PropTypes.string,
-	onChange: _react2["default"].PropTypes.func
+	tokenType: _react2["default"].PropTypes.string,
+	onChange: _react2["default"].PropTypes.func,
+	auth: _react2["default"].PropTypes.object
 };
 
 LoginComponent.defaultProps = {
@@ -1027,6 +1146,10 @@ LoginComponent.defaultProps = {
 	basicLabel: "Basic Login",
 	userPlaceholder: "Username or email address",
 	passwordPlaceholder: "Password",
+	loggedInLabel: "Logged in as",
+	tokenType: "",
+	VRE_ID: null,
+	auth: new _auth2["default"](),
 	onChange: function onChange(payload) {
 		console.log(payload);
 	}
@@ -1035,7 +1158,7 @@ LoginComponent.defaultProps = {
 exports["default"] = LoginComponent;
 module.exports = exports["default"];
 
-},{"./login-fields":15,"qs":1,"react":"react"}],15:[function(_dereq_,module,exports){
+},{"./auth":12,"./login-fields":15,"react":"react"}],15:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1055,10 +1178,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var _react = _dereq_("react");
 
 var _react2 = _interopRequireDefault(_react);
-
-var _auth = _dereq_("./auth");
-
-var _auth2 = _interopRequireDefault(_auth);
 
 var LoginFields = (function (_React$Component) {
 	_inherits(LoginFields, _React$Component);
@@ -1086,7 +1205,19 @@ var LoginFields = (function (_React$Component) {
 	}, {
 		key: "onBasicLoginClick",
 		value: function onBasicLoginClick(ev) {
-			new _auth2["default"](this.state.username, this.state.password, this.props.basicUrl, this.props.VRE_ID).basicLogin();
+			this.props.auth.basicLogin(this.state.username, this.state.password);
+		}
+	}, {
+		key: "onAuthSuccess",
+		value: function onAuthSuccess() {
+			console.log("auth success callback");
+		}
+	}, {
+		key: "onKeyDown",
+		value: function onKeyDown(ev) {
+			if (ev.keyCode === 13) {
+				this.onBasicLoginClick();
+			}
 		}
 	}, {
 		key: "render",
@@ -1113,11 +1244,13 @@ var LoginFields = (function (_React$Component) {
 					this.props.basicLabel
 				),
 				_react2["default"].createElement("input", {
+					onKeyDown: this.onKeyDown.bind(this),
 					onChange: this.onUserChange.bind(this),
 					type: "text",
 					placeholder: this.props.userPlaceholder,
 					value: this.state.username }),
 				_react2["default"].createElement("input", { onChange: this.onPasswordChange.bind(this),
+					onKeyDown: this.onKeyDown.bind(this),
 					type: "password",
 					placeholder: this.props.passwordPlaceholder,
 					value: this.state.password }),
@@ -1136,5 +1269,5 @@ var LoginFields = (function (_React$Component) {
 exports["default"] = LoginFields;
 module.exports = exports["default"];
 
-},{"./auth":12,"react":"react"}]},{},[13])(13)
+},{"react":"react"}]},{},[13])(13)
 });

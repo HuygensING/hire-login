@@ -1,5 +1,5 @@
 import React from "react";
-import Auth from "./auth";
+
 
 class LoginFields extends React.Component {
 	constructor(props) {
@@ -19,7 +19,17 @@ class LoginFields extends React.Component {
 	}
 
 	onBasicLoginClick(ev) {
-		new Auth(this.state.username, this.state.password, this.props.basicUrl, this.props.VRE_ID).basicLogin();
+		this.props.auth.basicLogin(this.state.username, this.state.password);
+	}
+
+	onAuthSuccess() {
+		console.log("auth success callback");
+	}
+
+	onKeyDown(ev) {
+		if(ev.keyCode === 13) {
+			this.onBasicLoginClick();
+		}
 	}
 
 	render() {
@@ -36,11 +46,13 @@ class LoginFields extends React.Component {
 				</form>
 				<h3>{this.props.basicLabel}</h3>
 				<input
+					onKeyDown={this.onKeyDown.bind(this)}
 					onChange={this.onUserChange.bind(this)}
 					type="text" 
 					placeholder={this.props.userPlaceholder}  
 					value={this.state.username} />
 				<input onChange={this.onPasswordChange.bind(this)}
+					onKeyDown={this.onKeyDown.bind(this)}
 					type="password" 
 					placeholder={this.props.passwordPlaceholder} 
 					value={this.state.password} />

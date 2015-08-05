@@ -1,23 +1,115 @@
 import xhr from 'xhr';
+import qs from "qs";
 
 class Auth {
-	constructor(username, password, url, VRE_ID) {
-		this.username = username;
-		this.password = password;
-		this.url = url;
-		this.VRE_ID = VRE_ID;
+
+	init(opts) {
+		this.url = opts.url || null;
+		this.userInfoUrl = opts.userInfoUrl || null;
+		this.VRE_ID = opts.VRE_ID || "";
+		this.tokenPrefix = opts.tokenPrefix || "";
+		this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
+		this.userData = null;
+		this.onAuthSuccess = opts.onAuthSuccess || false;
+		console.log(this.onAuthSuccess);
+
+		this.checkTokenInUrl();
+		if(this.getToken() !== null) {
+			this.fetchUserData();
+		}
 	}
 
-	basicLogin() {
+	fetchUserData() {
+		let _self = this;
+		xhr({
+			method: 'GET',
+			uri: this.userInfoUrl,
+			headers: {
+				Authorization: this.getToken(),
+				VRE_ID: this.VRE_ID
+			}
+		},  function(err, resp, body) {
+				if(resp.statusCode === 401) {
+					_self.handleFetchError(resp);
+				} else if(resp.statusCode === 200) {
+					_self.handleFetchSuccess(resp);
+				}
+			}
+		);
+	}
+
+	handleFetchSuccess(data) {
+		this.userData = JSON.parse(data.body);
+		if(this.onAuthSuccess) { this.onAuthSuccess(); }
+		console.log("FETCH success", this.userData);
+		console.log("Is authenticated", this.isAuthenticated());
+	}
+
+	handleFetchError(data) {
+		this.userData = null;
+		this.removeToken();
+		console.log("FETCH error", this.userData);
+		console.log("Is authenticated", this.isAuthenticated());
+	}
+
+	basicLogin(username, password) {
+		let _self = this;
 		xhr({
 			method: 'POST',
 			uri: this.url,
 			headers: {
-				Authorization: 'Basic ' + btoa(this.username + ':' + this.password)
+				Authorization: 'Basic ' + btoa(username + ':' + password)
 			}
 		},	function(err, resp, body) {
-				console.log(err, resp, body);
+				if(resp.statusCode === 401) {
+					_self.handleLoginError(resp);
+				} else if(resp.statusCode === 204) {
+					_self.handleLoginSuccess(resp);
+				}
 		});
+	}
+
+	handleLoginError(data) {
+		let body = JSON.parse(data.body);
+		this.removeToken();
+		alert(body.message);
+	}
+
+	handleLoginSuccess(data) {
+		this.setToken(data.headers.x_auth_token);
+		this.fetchUserData();
+	}
+
+	checkTokenInUrl() {
+		let params = qs.parse(window.location.search.substr(1));
+		
+		if(params.hsid) {
+			let hsid = params.hsid;
+			delete params.hsid;
+			let newQs = qs.stringify(params);
+			console.log(newQs);
+			let newLocation = window.location.pathname + (newQs.length === 0 ? '' :  '?' + newQs);
+			
+			this.setToken(hsid);
+
+			history.replaceState(history.state, 'tokened', newLocation);
+		}
+	}
+
+	setToken(token) {
+		localStorage.setItem(this.tokenPropertyName, this.tokenPrefix + token);
+	}
+
+	getToken() {
+		return localStorage.getItem(this.tokenPropertyName);
+	}
+
+	removeToken() {
+		localStorage.removeItem(this.tokenPropertyName);
+	}
+
+	isAuthenticated() {
+		return this.getToken() !== null && this.userData !== null;
 	}
 }
 
