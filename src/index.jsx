@@ -13,11 +13,11 @@ class LoginComponent extends React.Component {
 			errorMessage: null
 		}
 
-		let _self = this;
 		this.props.auth.init({
-			VRE_ID: this.props.VRE_ID,
 			url: this.props.basicUrl, 
 			userInfoUrl: this.props.userInfoUrl,
+			VRE_ID: this.props.VRE_ID,
+			tokenPrefix: this.props.tokenPrefix,
 			onAuthSuccess: this.onAuthSuccess.bind(this),
 			onAuthError: this.onAuthError.bind(this)
 		});
@@ -107,8 +107,8 @@ LoginComponent.propTypes = {
 	userPlaceholder: React.PropTypes.string,
 	loggedInLabel: React.PropTypes.string,
 	passwordPlaceholder: React.PropTypes.string,
-	tokenType: React.PropTypes.string,
-	onChange: React.PropTypes.func,
+	tokenPrefix: React.PropTypes.string,
+	onChange: React.PropTypes.func.isRequired,
 	auth: React.PropTypes.object
 }
 
@@ -119,10 +119,9 @@ LoginComponent.defaultProps = {
 	userPlaceholder: "Username or email address",
 	passwordPlaceholder: "Password",
 	loggedInLabel: "Logged in as",
-	tokenType: "",
+	tokenPrefix: "",
 	VRE_ID: null,
-	auth: new Auth(),
-	onChange: function(payload) { console.warn("Warning: hire-login expects an onChange callback for payload: ", payload); }
+	auth: new Auth()
 };
 
 

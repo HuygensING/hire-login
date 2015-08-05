@@ -887,10 +887,11 @@ var Auth = (function () {
 			this.userInfoUrl = opts.userInfoUrl || null;
 			this.VRE_ID = opts.VRE_ID || "";
 			this.tokenPrefix = opts.tokenPrefix || "";
-			this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
-			this.userData = null;
 			this.onAuthSuccess = opts.onAuthSuccess || false;
 			this.onAuthError = opts.onAuthError || false;
+
+			this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
+			this.userData = null;
 
 			this.checkTokenInUrl();
 			if (this.getToken() !== null) {
@@ -930,7 +931,7 @@ var Auth = (function () {
 			this.userData = null;
 			this.removeToken();
 			if (this.onAuthError) {
-				this.onAuthError("");
+				this.onAuthError("User is unauthorized");
 			}
 		}
 	}, {
@@ -970,11 +971,13 @@ var Auth = (function () {
 		key: "checkTokenInUrl",
 		value: function checkTokenInUrl() {
 			var params = _qs2["default"].parse(window.location.search.substr(1));
-
+			console.log("PARAMS", params);
 			if (params.hsid) {
 				var hsid = params.hsid;
 				delete params.hsid;
+				console.log("PARAMS 1", params);
 				var newQs = _qs2["default"].stringify(params);
+				console.log("NEW QS: ", newQs);
 				var newLocation = window.location.pathname + (newQs.length === 0 ? '' : '?' + newQs);
 
 				this.setToken(hsid);
@@ -1053,11 +1056,11 @@ var LoginComponent = (function (_React$Component) {
 			errorMessage: null
 		};
 
-		var _self = this;
 		this.props.auth.init({
-			VRE_ID: this.props.VRE_ID,
 			url: this.props.basicUrl,
 			userInfoUrl: this.props.userInfoUrl,
+			VRE_ID: this.props.VRE_ID,
+			tokenPrefix: this.props.tokenPrefix,
 			onAuthSuccess: this.onAuthSuccess.bind(this),
 			onAuthError: this.onAuthError.bind(this)
 		});
@@ -1166,8 +1169,8 @@ LoginComponent.propTypes = {
 	userPlaceholder: _react2["default"].PropTypes.string,
 	loggedInLabel: _react2["default"].PropTypes.string,
 	passwordPlaceholder: _react2["default"].PropTypes.string,
-	tokenType: _react2["default"].PropTypes.string,
-	onChange: _react2["default"].PropTypes.func,
+	tokenPrefix: _react2["default"].PropTypes.string,
+	onChange: _react2["default"].PropTypes.func.isRequired,
 	auth: _react2["default"].PropTypes.object
 };
 
@@ -1178,12 +1181,9 @@ LoginComponent.defaultProps = {
 	userPlaceholder: "Username or email address",
 	passwordPlaceholder: "Password",
 	loggedInLabel: "Logged in as",
-	tokenType: "",
+	tokenPrefix: "",
 	VRE_ID: null,
-	auth: new _auth2["default"](),
-	onChange: function onChange(payload) {
-		console.warn("Warning: hire-login expects an onChange callback for payload: ", payload);
-	}
+	auth: new _auth2["default"]()
 };
 
 exports["default"] = LoginComponent;
