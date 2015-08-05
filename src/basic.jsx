@@ -1,7 +1,10 @@
 import React from "react";
+import auth from "./auth";
+import loginStore from "./login-store";
+import api from "./api";
 
-
-class LoginFields extends React.Component {
+class Basic extends React.Component {
+	
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -19,29 +22,18 @@ class LoginFields extends React.Component {
 	}
 
 	onBasicLoginClick(ev) {
-		this.props.auth.basicLogin(this.state.username, this.state.password);
+		api.basicLogin(this.props.url, this.state.username, this.state.password);
 	}
-
 
 	onKeyDown(ev) {
 		if(ev.keyCode === 13) {
 			this.onBasicLoginClick();
 		}
 	}
-
 	render() {
-		let hsURL = window.location.href;
 		return  (
 			<div>
-				<form 
-				 	action={this.props.federatedUrl}
-				 	method="POST">
-				 	<input name="hsurl" value={hsURL} type="hidden" />
-				 	<button type="submit">
-				 		{this.props.federatedLabel}
-				 	</button>
-				</form>
-				<h3>{this.props.basicLabel}</h3>
+				<h3>{this.props.label}</h3>
 				<input
 					onKeyDown={this.onKeyDown.bind(this)}
 					onChange={this.onUserChange.bind(this)}
@@ -59,4 +51,21 @@ class LoginFields extends React.Component {
 	}
 }
 
-export default LoginFields;
+Basic.propTypes = {
+	url: React.PropTypes.string.isRequired,
+	buttonLabel: React.PropTypes.string,
+	label: React.PropTypes.string,
+	userPlaceholder: React.PropTypes.string,
+	passwordPlaceholder: React.PropTypes.string,
+	label: React.PropTypes.string
+}
+
+Basic.defaultProps = {
+	buttonLabel: "Login",
+	label: "Basic Login",
+	userPlaceholder: "Username or email address",
+	passwordPlaceholder: "Password"	
+};
+
+
+export default Basic;

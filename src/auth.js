@@ -1,16 +1,16 @@
 import xhr from 'xhr';
 import qs from "qs";
+import api from "./api";
 
 class Auth {
 
 	init(opts) {
-		this.url = opts.url || null;
 		this.userInfoUrl = opts.userInfoUrl || null;
 		this.VRE_ID = opts.VRE_ID || "";
-		this.tokenPrefix = opts.tokenPrefix || "";
 		this.onAuthSuccess = opts.onAuthSuccess || false;
 		this.onAuthError = opts.onAuthError || false;
 
+		this.tokenPrefix = opts.tokenPrefix || "";
 		this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
 		this.userData = null;
 
@@ -50,11 +50,11 @@ class Auth {
 		if(this.onAuthError) { this.onAuthError("User is unauthorized"); }
 	}
 
-	basicLogin(username, password) {
+	basicLogin(url, username, password) {
 		let _self = this;
 		xhr({
 			method: 'POST',
-			uri: this.url,
+			uri: url,
 			headers: {
 				Authorization: 'Basic ' + btoa(username + ':' + password)
 			}
@@ -80,13 +80,11 @@ class Auth {
 
 	checkTokenInUrl() {
 		let params = qs.parse(window.location.search.substr(1));
-		console.log("PARAMS", params);
+		
 		if(params.hsid) {
 			let hsid = params.hsid;
 			delete params.hsid;
-			console.log("PARAMS 1", params);
 			let newQs = qs.stringify(params);
-			console.log("NEW QS: ", newQs);
 			let newLocation = window.location.pathname + (newQs.length === 0 ? '' :  '?' + newQs);
 			
 			this.setToken(hsid);
@@ -112,4 +110,4 @@ class Auth {
 	}
 }
 
-export default Auth;
+export default new Auth();
