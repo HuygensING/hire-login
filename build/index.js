@@ -890,6 +890,7 @@ var Auth = (function () {
 			this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
 			this.userData = null;
 			this.onAuthSuccess = opts.onAuthSuccess || false;
+			this.onAuthError = opts.onAuthError || false;
 
 			this.checkTokenInUrl();
 			if (this.getToken() !== null) {
@@ -928,6 +929,9 @@ var Auth = (function () {
 		value: function handleFetchError(data) {
 			this.userData = null;
 			this.removeToken();
+			if (this.onAuthError) {
+				this.onAuthError("");
+			}
 		}
 	}, {
 		key: "basicLogin",
@@ -952,7 +956,9 @@ var Auth = (function () {
 		value: function handleLoginError(data) {
 			var body = JSON.parse(data.body);
 			this.removeToken();
-			alert(body.message);
+			if (this.onAuthError) {
+				this.onAuthError(body.message);
+			}
 		}
 	}, {
 		key: "handleLoginSuccess",
@@ -1043,7 +1049,8 @@ var LoginComponent = (function (_React$Component) {
 
 		this.state = {
 			opened: false,
-			authenticated: false
+			authenticated: false,
+			errorMessage: null
 		};
 
 		var _self = this;
@@ -1051,7 +1058,8 @@ var LoginComponent = (function (_React$Component) {
 			VRE_ID: this.props.VRE_ID,
 			url: this.props.basicUrl,
 			userInfoUrl: this.props.userInfoUrl,
-			onAuthSuccess: this.onAuthSuccess.bind(this)
+			onAuthSuccess: this.onAuthSuccess.bind(this),
+			onAuthError: this.onAuthError.bind(this)
 		});
 	}
 
@@ -1067,6 +1075,15 @@ var LoginComponent = (function (_React$Component) {
 			this.props.onChange({
 				authenticated: true,
 				userData: this.props.auth.userData
+			});
+		}
+	}, {
+		key: "onAuthError",
+		value: function onAuthError(msg) {
+			this.setState({ authenticated: false, errorMessage: msg });
+			this.props.onChange({
+				authenticated: false,
+				userData: null
 			});
 		}
 	}, {
@@ -1124,7 +1141,12 @@ var LoginComponent = (function (_React$Component) {
 							this.props.buttonLabel
 						)
 					),
-					loginFields
+					loginFields,
+					_react2["default"].createElement(
+						"div",
+						{ "class": "hire-login-error" },
+						this.state.errorMessage
+					)
 				);
 			}
 		}
@@ -1160,7 +1182,7 @@ LoginComponent.defaultProps = {
 	VRE_ID: null,
 	auth: new _auth2["default"](),
 	onChange: function onChange(payload) {
-		console.warn("hire-login expects an onChange callback for payload: ", payload);
+		console.warn("Warning: hire-login expects an onChange callback for payload: ", payload);
 	}
 };
 

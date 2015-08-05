@@ -9,7 +9,8 @@ class LoginComponent extends React.Component {
 
 		this.state = {
 			opened: false,
-			authenticated: false
+			authenticated: false,
+			errorMessage: null
 		}
 
 		let _self = this;
@@ -17,7 +18,8 @@ class LoginComponent extends React.Component {
 			VRE_ID: this.props.VRE_ID,
 			url: this.props.basicUrl, 
 			userInfoUrl: this.props.userInfoUrl,
-			onAuthSuccess: this.onAuthSuccess.bind(this)
+			onAuthSuccess: this.onAuthSuccess.bind(this),
+			onAuthError: this.onAuthError.bind(this)
 		});
 	}
 
@@ -30,6 +32,14 @@ class LoginComponent extends React.Component {
 		this.props.onChange({
 			authenticated: true,
 			userData: this.props.auth.userData
+		});
+	}
+
+	onAuthError(msg) {
+		this.setState({authenticated: false, errorMessage: msg});
+		this.props.onChange({
+			authenticated: false,
+			userData: null
 		});
 	}
 
@@ -79,6 +89,7 @@ class LoginComponent extends React.Component {
 						</button>
 					</div>
 					{loginFields}
+					<div class="hire-login-error">{this.state.errorMessage}</div>
 				</div>
 			);
 		}
@@ -111,7 +122,7 @@ LoginComponent.defaultProps = {
 	tokenType: "",
 	VRE_ID: null,
 	auth: new Auth(),
-	onChange: function(payload) { console.warn("hire-login expects an onChange callback for payload: ", payload); }
+	onChange: function(payload) { console.warn("Warning: hire-login expects an onChange callback for payload: ", payload); }
 };
 
 

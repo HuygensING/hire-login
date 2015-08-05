@@ -11,6 +11,7 @@ class Auth {
 		this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
 		this.userData = null;
 		this.onAuthSuccess = opts.onAuthSuccess || false;
+		this.onAuthError = opts.onAuthError || false;
 
 		this.checkTokenInUrl();
 		if(this.getToken() !== null) {
@@ -45,6 +46,7 @@ class Auth {
 	handleFetchError(data) {
 		this.userData = null;
 		this.removeToken();
+		if(this.onAuthError) { this.onAuthError(""); }
 	}
 
 	basicLogin(username, password) {
@@ -67,7 +69,7 @@ class Auth {
 	handleLoginError(data) {
 		let body = JSON.parse(data.body);
 		this.removeToken();
-		alert(body.message);
+		if(this.onAuthError) { this.onAuthError(body.message); }
 	}
 
 	handleLoginSuccess(data) {
