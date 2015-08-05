@@ -83,7 +83,7 @@ LoginComponent.defaultProps = {
 	tokenType: "",
 	VRE_ID: null,
 	auth: new Auth(),
-	onChange: function(payload) { console.log(payload); }
+	onChange: function(payload) { console.warn("hire-login expects an onchange callback for payload: ", payload); }
 };
 
 

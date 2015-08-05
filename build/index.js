@@ -923,16 +923,12 @@ var Auth = (function () {
 			if (this.onAuthSuccess) {
 				this.onAuthSuccess();
 			}
-			console.log("FETCH success", this.userData);
-			console.log("Is authenticated", this.isAuthenticated());
 		}
 	}, {
 		key: "handleFetchError",
 		value: function handleFetchError(data) {
 			this.userData = null;
 			this.removeToken();
-			console.log("FETCH error", this.userData);
-			console.log("Is authenticated", this.isAuthenticated());
 		}
 	}, {
 		key: "basicLogin",
@@ -1151,7 +1147,7 @@ LoginComponent.defaultProps = {
 	VRE_ID: null,
 	auth: new _auth2["default"](),
 	onChange: function onChange(payload) {
-		console.log(payload);
+		console.warn("hire-login expects an onchange callback for payload: ", payload);
 	}
 };
 

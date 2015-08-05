@@ -41,15 +41,11 @@ class Auth {
 	handleFetchSuccess(data) {
 		this.userData = JSON.parse(data.body);
 		if(this.onAuthSuccess) { this.onAuthSuccess(); }
-		console.log("FETCH success", this.userData);
-		console.log("Is authenticated", this.isAuthenticated());
 	}
 
 	handleFetchError(data) {
 		this.userData = null;
 		this.removeToken();
-		console.log("FETCH error", this.userData);
-		console.log("Is authenticated", this.isAuthenticated());
 	}
 
 	basicLogin(username, password) {
