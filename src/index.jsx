@@ -60,7 +60,7 @@ class LoginComponent extends React.Component {
 	render() {
 		if(this.state.authenticated) {
 			return (
-				<div className="hire-forms-login">
+				<div className="hire-login">
 					{this.props.loggedInLabel ? this.props.loggedInLabel + " " : ""}
 					{this.props.auth.userData.displayName}
 				</div>
@@ -71,7 +71,7 @@ class LoginComponent extends React.Component {
 				null;
 
 			return (
-				<div className="hire-forms-login">
+				<div className="hire-login">
 					<div>
 						<button className="login-toggle" 
 							onClick={this.toggleLogin.bind(this)}>

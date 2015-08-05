@@ -1104,7 +1104,7 @@ var LoginComponent = (function (_React$Component) {
 			if (this.state.authenticated) {
 				return _react2["default"].createElement(
 					"div",
-					{ className: "hire-forms-login" },
+					{ className: "hire-login" },
 					this.props.loggedInLabel ? this.props.loggedInLabel + " " : "",
 					this.props.auth.userData.displayName
 				);
@@ -1113,7 +1113,7 @@ var LoginComponent = (function (_React$Component) {
 
 				return _react2["default"].createElement(
 					"div",
-					{ className: "hire-forms-login" },
+					{ className: "hire-login" },
 					_react2["default"].createElement(
 						"div",
 						null,
