@@ -890,7 +890,6 @@ var Auth = (function () {
 			this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
 			this.userData = null;
 			this.onAuthSuccess = opts.onAuthSuccess || false;
-			console.log(this.onAuthSuccess);
 
 			this.checkTokenInUrl();
 			if (this.getToken() !== null) {
@@ -970,7 +969,6 @@ var Auth = (function () {
 				var hsid = params.hsid;
 				delete params.hsid;
 				var newQs = _qs2["default"].stringify(params);
-				console.log(newQs);
 				var newLocation = window.location.pathname + (newQs.length === 0 ? '' : '?' + newQs);
 
 				this.setToken(hsid);
@@ -1010,26 +1008,8 @@ module.exports = exports["default"];
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-var _loginComponent = _dereq_("./login-component");
-
-var _loginComponent2 = _interopRequireDefault(_loginComponent);
-
-exports["default"] = _loginComponent2["default"];
-module.exports = exports["default"];
-
-},{"./login-component":14}],14:[function(_dereq_,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -1084,6 +1064,39 @@ var LoginComponent = (function (_React$Component) {
 		key: "onAuthSuccess",
 		value: function onAuthSuccess() {
 			this.setState({ authenticated: true });
+			this.props.onChange({
+				authenticated: true,
+				userData: this.props.auth.userData
+			});
+		}
+	}, {
+		key: "componentDidMount",
+		value: function componentDidMount() {
+			var _this = this;
+
+			document.addEventListener("click", this.handleDocumentClick.bind(this), false);
+
+			if (this.props.async != null) {
+				this.props.async(function (response) {
+					_this.setState({
+						options: response
+					});
+				});
+			}
+		}
+	}, {
+		key: "componentWillUnmount",
+		value: function componentWillUnmount() {
+			document.removeEventListener("click", this.handleDocumentClick.bind(this), false);
+		}
+	}, {
+		key: "handleDocumentClick",
+		value: function handleDocumentClick(ev) {
+			if (this.state.opened && !_react2["default"].findDOMNode(this).contains(ev.target)) {
+				this.setState({
+					opened: false
+				});
+			}
 		}
 	}, {
 		key: "render",
@@ -1096,7 +1109,7 @@ var LoginComponent = (function (_React$Component) {
 					this.props.auth.userData.displayName
 				);
 			} else {
-				var loginFields = this.state.opened ? _react2["default"].createElement(_loginFields2["default"], _extends({}, this.props, { onAuth: this.onAuthSuccess })) : null;
+				var loginFields = this.state.opened ? _react2["default"].createElement(_loginFields2["default"], this.props) : null;
 
 				return _react2["default"].createElement(
 					"div",
@@ -1147,14 +1160,14 @@ LoginComponent.defaultProps = {
 	VRE_ID: null,
 	auth: new _auth2["default"](),
 	onChange: function onChange(payload) {
-		console.warn("hire-login expects an onchange callback for payload: ", payload);
+		console.warn("hire-login expects an onChange callback for payload: ", payload);
 	}
 };
 
 exports["default"] = LoginComponent;
 module.exports = exports["default"];
 
-},{"./auth":12,"./login-fields":15,"react":"react"}],15:[function(_dereq_,module,exports){
+},{"./auth":12,"./login-fields":14,"react":"react"}],14:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1202,11 +1215,6 @@ var LoginFields = (function (_React$Component) {
 		key: "onBasicLoginClick",
 		value: function onBasicLoginClick(ev) {
 			this.props.auth.basicLogin(this.state.username, this.state.password);
-		}
-	}, {
-		key: "onAuthSuccess",
-		value: function onAuthSuccess() {
-			console.log("auth success callback");
 		}
 	}, {
 		key: "onKeyDown",

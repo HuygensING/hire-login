@@ -22,9 +22,6 @@ class LoginFields extends React.Component {
 		this.props.auth.basicLogin(this.state.username, this.state.password);
 	}
 
-	onAuthSuccess() {
-		console.log("auth success callback");
-	}
 
 	onKeyDown(ev) {
 		if(ev.keyCode === 13) {

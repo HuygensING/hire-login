@@ -11,7 +11,6 @@ class Auth {
 		this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
 		this.userData = null;
 		this.onAuthSuccess = opts.onAuthSuccess || false;
-		console.log(this.onAuthSuccess);
 
 		this.checkTokenInUrl();
 		if(this.getToken() !== null) {
@@ -83,7 +82,6 @@ class Auth {
 			let hsid = params.hsid;
 			delete params.hsid;
 			let newQs = qs.stringify(params);
-			console.log(newQs);
 			let newLocation = window.location.pathname + (newQs.length === 0 ? '' :  '?' + newQs);
 			
 			this.setToken(hsid);
