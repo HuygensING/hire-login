@@ -1,5 +1,4 @@
 import React from "react";
-import auth from "./auth";
 import loginStore from "./login-store";
 import api from "./api";
 
@@ -30,6 +29,7 @@ class Basic extends React.Component {
 			this.onBasicLoginClick();
 		}
 	}
+
 	render() {
 		return  (
 			<div>
@@ -64,7 +64,7 @@ Basic.defaultProps = {
 	buttonLabel: "Login",
 	label: "Basic Login",
 	userPlaceholder: "Username or email address",
-	passwordPlaceholder: "Password"	
+	passwordPlaceholder: "Password"
 };
 
 

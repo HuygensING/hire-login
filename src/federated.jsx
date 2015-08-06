@@ -1,6 +1,11 @@
 import React from "react";
+import loginStore from "./login-store";
+
 
 class Federated extends React.Component {
+	constructor(props) {
+		super(props);
+	}
 
 	render() {
 		let hsURL = window.location.href;
@@ -20,13 +25,11 @@ class Federated extends React.Component {
 
 Federated.propTypes = {
 	url: React.PropTypes.string.isRequired,
-	tokenPrefix: React.PropTypes.string,
 	label: React.PropTypes.string
 }
 
 Federated.defaultProps = {
-	label: "Federated Login",
-	tokenPrefix: ""
+	label: "Federated Login"
 };
 
 

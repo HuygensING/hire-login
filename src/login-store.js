@@ -3,60 +3,102 @@ import dispatcher from "./dispatcher";
 
 const CHANGE_EVENT = "change";
 
+
 class LoginStore extends EventEmitter {
-	listen(callback) {
-		this.addListener(CHANGE_EVENT, callback);
+	constructor() {
+		super();
+
+		this.errorMessage = null;
+		this.userData = null;
+		this.vreId = null;
+		this.tokenPropertyName = null;
+		this.usePrefix = false;
+	}
+
+	intializeVre(vreId) {
+		this.vreId = vreId;
+		this.tokenPropertyName = "hi-" + this.vreId.toLowerCase() + "-auth-token";
+		this.checkTokenInUrl();
+	}
+
+	setUsePrefix(usePrefix) {
+		this.usePrefix = usePrefix;
+	}
+
+	checkTokenInUrl() {
+		let path = window.location.search.substr(1);
+		let params = path.split('&');
+
+		for(let i in params) {
+			let [key, value] = params[i].split('=');
+			if(key === 'hsid') {
+				let newLocation = window.location.href
+					.replace(params[i], "")
+					.replace(/[\?\&]$/, "");
+				this.setToken((this.usePrefix ? "Federated " : "") + value);
+				history.replaceState(history.state, 'tokened', newLocation);
+				break;
+			}
+		}
+
 	}
 
 	getState() {
 		return {
 			token: this.getToken(),
-			status: this.status,
-			errorMessage: this.errorMessage
+			tokenPropertyName: this.tokenPropertyName,
+			errorMessage: this.errorMessage,
+			authenticated: this.getToken() !== null && this.userData !== null,
+			userData: this.userData
 		};
 	}
 
+	onMissingTokenPropertyName() {
+		console.warn("WARNING: missing tokenPropertyName, call intializeVre before attempting authentication");
+	}
+
 	setToken(token) {
+		if(this.tokenPropertyName === null) { return this.onMissingTokenPropertyName() }
 		localStorage.setItem(this.tokenPropertyName, token);
 	}
 
 	getToken() {
+		if(this.tokenPropertyName === null) { return this.onMissingTokenPropertyName() }
 		return localStorage.getItem(this.tokenPropertyName);
 	}
 
+
 	removeToken() {
+		if(this.tokenPropertyName === null) { return this.onMissingTokenPropertyName() }
 		localStorage.removeItem(this.tokenPropertyName);
 	}
 
-	stopListening(callback) {
-		this.removeListener(CHANGE_EVENT, callback);
-	}
 
 	receiveBasicAuth(data) {
-		console.log("receiveBasicAuth", data);
 
 		// TODO: find out correct tokenPrefix from apidoc...
-		this.setToken(/*"basic " + */ data.headers.x_auth_token);
-		this.status = "token-received";
+		this.setToken((this.usePrefix ? "SimpleAuth " : "") + data.headers.x_auth_token);
 		this.errorMessage = null;
 
 	}
 
 	receiveBasicAuthFailure(data) {
-		console.log("receiveBasicAuthFailure", data);
 		let body = JSON.parse(data.body);
-		this.status = "basic-auth-failure";
 		this.errorMessage = body.message;
 		this.removeToken();
 	}
 
 	receiveUserData(data) {
-		console.log("receiveUserData", data);
+		this.userData = JSON.parse(data.body);
 	}
 
 	receiveUserDataFailure(data) {
-		console.log("receiveUserDataFailure", data);
+		this.removeToken();
+		this.errorMessage = "Unauthorized";
 	}
+
+	stopListening(callback) { this.removeListener(CHANGE_EVENT, callback); }
+	listen(callback) { this.addListener(CHANGE_EVENT, callback); }
 }
 
 let loginStore = new LoginStore();

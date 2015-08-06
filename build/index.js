@@ -318,526 +318,6 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 module.exports = invariant;
 
 },{}],4:[function(_dereq_,module,exports){
-// Load modules
-
-var Stringify = _dereq_('./stringify');
-var Parse = _dereq_('./parse');
-
-
-// Declare internals
-
-var internals = {};
-
-
-module.exports = {
-    stringify: Stringify,
-    parse: Parse
-};
-
-},{"./parse":5,"./stringify":6}],5:[function(_dereq_,module,exports){
-// Load modules
-
-var Utils = _dereq_('./utils');
-
-
-// Declare internals
-
-var internals = {
-    delimiter: '&',
-    depth: 5,
-    arrayLimit: 20,
-    parameterLimit: 1000,
-    strictNullHandling: false,
-    plainObjects: false,
-    allowPrototypes: false
-};
-
-
-internals.parseValues = function (str, options) {
-
-    var obj = {};
-    var parts = str.split(options.delimiter, options.parameterLimit === Infinity ? undefined : options.parameterLimit);
-
-    for (var i = 0, il = parts.length; i < il; ++i) {
-        var part = parts[i];
-        var pos = part.indexOf(']=') === -1 ? part.indexOf('=') : part.indexOf(']=') + 1;
-
-        if (pos === -1) {
-            obj[Utils.decode(part)] = '';
-
-            if (options.strictNullHandling) {
-                obj[Utils.decode(part)] = null;
-            }
-        }
-        else {
-            var key = Utils.decode(part.slice(0, pos));
-            var val = Utils.decode(part.slice(pos + 1));
-
-            if (!Object.prototype.hasOwnProperty.call(obj, key)) {
-                obj[key] = val;
-            }
-            else {
-                obj[key] = [].concat(obj[key]).concat(val);
-            }
-        }
-    }
-
-    return obj;
-};
-
-
-internals.parseObject = function (chain, val, options) {
-
-    if (!chain.length) {
-        return val;
-    }
-
-    var root = chain.shift();
-
-    var obj;
-    if (root === '[]') {
-        obj = [];
-        obj = obj.concat(internals.parseObject(chain, val, options));
-    }
-    else {
-        obj = options.plainObjects ? Object.create(null) : {};
-        var cleanRoot = root[0] === '[' && root[root.length - 1] === ']' ? root.slice(1, root.length - 1) : root;
-        var index = parseInt(cleanRoot, 10);
-        var indexString = '' + index;
-        if (!isNaN(index) &&
-            root !== cleanRoot &&
-            indexString === cleanRoot &&
-            index >= 0 &&
-            (options.parseArrays &&
-             index <= options.arrayLimit)) {
-
-            obj = [];
-            obj[index] = internals.parseObject(chain, val, options);
-        }
-        else {
-            obj[cleanRoot] = internals.parseObject(chain, val, options);
-        }
-    }
-
-    return obj;
-};
-
-
-internals.parseKeys = function (key, val, options) {
-
-    if (!key) {
-        return;
-    }
-
-    // Transform dot notation to bracket notation
-
-    if (options.allowDots) {
-        key = key.replace(/\.([^\.\[]+)/g, '[$1]');
-    }
-
-    // The regex chunks
-
-    var parent = /^([^\[\]]*)/;
-    var child = /(\[[^\[\]]*\])/g;
-
-    // Get the parent
-
-    var segment = parent.exec(key);
-
-    // Stash the parent if it exists
-
-    var keys = [];
-    if (segment[1]) {
-        // If we aren't using plain objects, optionally prefix keys
-        // that would overwrite object prototype properties
-        if (!options.plainObjects &&
-            Object.prototype.hasOwnProperty(segment[1])) {
-
-            if (!options.allowPrototypes) {
-                return;
-            }
-        }
-
-        keys.push(segment[1]);
-    }
-
-    // Loop through children appending to the array until we hit depth
-
-    var i = 0;
-    while ((segment = child.exec(key)) !== null && i < options.depth) {
-
-        ++i;
-        if (!options.plainObjects &&
-            Object.prototype.hasOwnProperty(segment[1].replace(/\[|\]/g, ''))) {
-
-            if (!options.allowPrototypes) {
-                continue;
-            }
-        }
-        keys.push(segment[1]);
-    }
-
-    // If there's a remainder, just add whatever is left
-
-    if (segment) {
-        keys.push('[' + key.slice(segment.index) + ']');
-    }
-
-    return internals.parseObject(keys, val, options);
-};
-
-
-module.exports = function (str, options) {
-
-    options = options || {};
-    options.delimiter = typeof options.delimiter === 'string' || Utils.isRegExp(options.delimiter) ? options.delimiter : internals.delimiter;
-    options.depth = typeof options.depth === 'number' ? options.depth : internals.depth;
-    options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : internals.arrayLimit;
-    options.parseArrays = options.parseArrays !== false;
-    options.allowDots = options.allowDots !== false;
-    options.plainObjects = typeof options.plainObjects === 'boolean' ? options.plainObjects : internals.plainObjects;
-    options.allowPrototypes = typeof options.allowPrototypes === 'boolean' ? options.allowPrototypes : internals.allowPrototypes;
-    options.parameterLimit = typeof options.parameterLimit === 'number' ? options.parameterLimit : internals.parameterLimit;
-    options.strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : internals.strictNullHandling;
-
-    if (str === '' ||
-        str === null ||
-        typeof str === 'undefined') {
-
-        return options.plainObjects ? Object.create(null) : {};
-    }
-
-    var tempObj = typeof str === 'string' ? internals.parseValues(str, options) : str;
-    var obj = options.plainObjects ? Object.create(null) : {};
-
-    // Iterate over the keys and setup the new object
-
-    var keys = Object.keys(tempObj);
-    for (var i = 0, il = keys.length; i < il; ++i) {
-        var key = keys[i];
-        var newObj = internals.parseKeys(key, tempObj[key], options);
-        obj = Utils.merge(obj, newObj, options);
-    }
-
-    return Utils.compact(obj);
-};
-
-},{"./utils":7}],6:[function(_dereq_,module,exports){
-// Load modules
-
-var Utils = _dereq_('./utils');
-
-
-// Declare internals
-
-var internals = {
-    delimiter: '&',
-    arrayPrefixGenerators: {
-        brackets: function (prefix, key) {
-
-            return prefix + '[]';
-        },
-        indices: function (prefix, key) {
-
-            return prefix + '[' + key + ']';
-        },
-        repeat: function (prefix, key) {
-
-            return prefix;
-        }
-    },
-    strictNullHandling: false
-};
-
-
-internals.stringify = function (obj, prefix, generateArrayPrefix, strictNullHandling, filter) {
-
-    if (typeof filter === 'function') {
-        obj = filter(prefix, obj);
-    }
-    else if (Utils.isBuffer(obj)) {
-        obj = obj.toString();
-    }
-    else if (obj instanceof Date) {
-        obj = obj.toISOString();
-    }
-    else if (obj === null) {
-        if (strictNullHandling) {
-            return Utils.encode(prefix);
-        }
-
-        obj = '';
-    }
-
-    if (typeof obj === 'string' ||
-        typeof obj === 'number' ||
-        typeof obj === 'boolean') {
-
-        return [Utils.encode(prefix) + '=' + Utils.encode(obj)];
-    }
-
-    var values = [];
-
-    if (typeof obj === 'undefined') {
-        return values;
-    }
-
-    var objKeys = Array.isArray(filter) ? filter : Object.keys(obj);
-    for (var i = 0, il = objKeys.length; i < il; ++i) {
-        var key = objKeys[i];
-
-        if (Array.isArray(obj)) {
-            values = values.concat(internals.stringify(obj[key], generateArrayPrefix(prefix, key), generateArrayPrefix, strictNullHandling, filter));
-        }
-        else {
-            values = values.concat(internals.stringify(obj[key], prefix + '[' + key + ']', generateArrayPrefix, strictNullHandling, filter));
-        }
-    }
-
-    return values;
-};
-
-
-module.exports = function (obj, options) {
-
-    options = options || {};
-    var delimiter = typeof options.delimiter === 'undefined' ? internals.delimiter : options.delimiter;
-    var strictNullHandling = typeof options.strictNullHandling === 'boolean' ? options.strictNullHandling : internals.strictNullHandling;
-    var objKeys;
-    var filter;
-    if (typeof options.filter === 'function') {
-        filter = options.filter;
-        obj = filter('', obj);
-    }
-    else if (Array.isArray(options.filter)) {
-        objKeys = filter = options.filter;
-    }
-
-    var keys = [];
-
-    if (typeof obj !== 'object' ||
-        obj === null) {
-
-        return '';
-    }
-
-    var arrayFormat;
-    if (options.arrayFormat in internals.arrayPrefixGenerators) {
-        arrayFormat = options.arrayFormat;
-    }
-    else if ('indices' in options) {
-        arrayFormat = options.indices ? 'indices' : 'repeat';
-    }
-    else {
-        arrayFormat = 'indices';
-    }
-
-    var generateArrayPrefix = internals.arrayPrefixGenerators[arrayFormat];
-
-    if (!objKeys) {
-        objKeys = Object.keys(obj);
-    }
-    for (var i = 0, il = objKeys.length; i < il; ++i) {
-        var key = objKeys[i];
-        keys = keys.concat(internals.stringify(obj[key], key, generateArrayPrefix, strictNullHandling, filter));
-    }
-
-    return keys.join(delimiter);
-};
-
-},{"./utils":7}],7:[function(_dereq_,module,exports){
-// Load modules
-
-
-// Declare internals
-
-var internals = {};
-internals.hexTable = new Array(256);
-for (var h = 0; h < 256; ++h) {
-    internals.hexTable[h] = '%' + ((h < 16 ? '0' : '') + h.toString(16)).toUpperCase();
-}
-
-
-exports.arrayToObject = function (source, options) {
-
-    var obj = options.plainObjects ? Object.create(null) : {};
-    for (var i = 0, il = source.length; i < il; ++i) {
-        if (typeof source[i] !== 'undefined') {
-
-            obj[i] = source[i];
-        }
-    }
-
-    return obj;
-};
-
-
-exports.merge = function (target, source, options) {
-
-    if (!source) {
-        return target;
-    }
-
-    if (typeof source !== 'object') {
-        if (Array.isArray(target)) {
-            target.push(source);
-        }
-        else if (typeof target === 'object') {
-            target[source] = true;
-        }
-        else {
-            target = [target, source];
-        }
-
-        return target;
-    }
-
-    if (typeof target !== 'object') {
-        target = [target].concat(source);
-        return target;
-    }
-
-    if (Array.isArray(target) &&
-        !Array.isArray(source)) {
-
-        target = exports.arrayToObject(target, options);
-    }
-
-    var keys = Object.keys(source);
-    for (var k = 0, kl = keys.length; k < kl; ++k) {
-        var key = keys[k];
-        var value = source[key];
-
-        if (!Object.prototype.hasOwnProperty.call(target, key)) {
-            target[key] = value;
-        }
-        else {
-            target[key] = exports.merge(target[key], value, options);
-        }
-    }
-
-    return target;
-};
-
-
-exports.decode = function (str) {
-
-    try {
-        return decodeURIComponent(str.replace(/\+/g, ' '));
-    } catch (e) {
-        return str;
-    }
-};
-
-exports.encode = function (str) {
-
-    // This code was originally written by Brian White (mscdex) for the io.js core querystring library.
-    // It has been adapted here for stricter adherence to RFC 3986
-    if (str.length === 0) {
-        return str;
-    }
-
-    if (typeof str !== 'string') {
-        str = '' + str;
-    }
-
-    var out = '';
-    for (var i = 0, il = str.length; i < il; ++i) {
-        var c = str.charCodeAt(i);
-
-        if (c === 0x2D || // -
-            c === 0x2E || // .
-            c === 0x5F || // _
-            c === 0x7E || // ~
-            (c >= 0x30 && c <= 0x39) || // 0-9
-            (c >= 0x41 && c <= 0x5A) || // a-z
-            (c >= 0x61 && c <= 0x7A)) { // A-Z
-
-            out += str[i];
-            continue;
-        }
-
-        if (c < 0x80) {
-            out += internals.hexTable[c];
-            continue;
-        }
-
-        if (c < 0x800) {
-            out += internals.hexTable[0xC0 | (c >> 6)] + internals.hexTable[0x80 | (c & 0x3F)];
-            continue;
-        }
-
-        if (c < 0xD800 || c >= 0xE000) {
-            out += internals.hexTable[0xE0 | (c >> 12)] + internals.hexTable[0x80 | ((c >> 6) & 0x3F)] + internals.hexTable[0x80 | (c & 0x3F)];
-            continue;
-        }
-
-        ++i;
-        c = 0x10000 + (((c & 0x3FF) << 10) | (str.charCodeAt(i) & 0x3FF));
-        out += internals.hexTable[0xF0 | (c >> 18)] + internals.hexTable[0x80 | ((c >> 12) & 0x3F)] + internals.hexTable[0x80 | ((c >> 6) & 0x3F)] + internals.hexTable[0x80 | (c & 0x3F)];
-    }
-
-    return out;
-};
-
-exports.compact = function (obj, refs) {
-
-    if (typeof obj !== 'object' ||
-        obj === null) {
-
-        return obj;
-    }
-
-    refs = refs || [];
-    var lookup = refs.indexOf(obj);
-    if (lookup !== -1) {
-        return refs[lookup];
-    }
-
-    refs.push(obj);
-
-    if (Array.isArray(obj)) {
-        var compacted = [];
-
-        for (var i = 0, il = obj.length; i < il; ++i) {
-            if (typeof obj[i] !== 'undefined') {
-                compacted.push(obj[i]);
-            }
-        }
-
-        return compacted;
-    }
-
-    var keys = Object.keys(obj);
-    for (i = 0, il = keys.length; i < il; ++i) {
-        var key = keys[i];
-        obj[key] = exports.compact(obj[key], refs);
-    }
-
-    return obj;
-};
-
-
-exports.isRegExp = function (obj) {
-
-    return Object.prototype.toString.call(obj) === '[object RegExp]';
-};
-
-
-exports.isBuffer = function (obj) {
-
-    if (obj === null ||
-        typeof obj === 'undefined') {
-
-        return false;
-    }
-
-    return !!(obj.constructor &&
-              obj.constructor.isBuffer &&
-              obj.constructor.isBuffer(obj));
-};
-
-},{}],8:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -1140,7 +620,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 "use strict";
 var window = _dereq_("global/window")
 var once = _dereq_("once")
@@ -1329,7 +809,7 @@ function createXHR(options, callback) {
 
 function noop() {}
 
-},{"global/window":10,"once":11,"parse-headers":15}],10:[function(_dereq_,module,exports){
+},{"global/window":6,"once":7,"parse-headers":11}],6:[function(_dereq_,module,exports){
 (function (global){
 if (typeof window !== "undefined") {
     module.exports = window;
@@ -1342,7 +822,7 @@ if (typeof window !== "undefined") {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 module.exports = once
 
 once.proto = once(function () {
@@ -1363,7 +843,7 @@ function once (fn) {
   }
 }
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 var isFunction = _dereq_('is-function')
 
 module.exports = forEach
@@ -1411,7 +891,7 @@ function forEachObject(object, iterator, context) {
     }
 }
 
-},{"is-function":13}],13:[function(_dereq_,module,exports){
+},{"is-function":9}],9:[function(_dereq_,module,exports){
 module.exports = isFunction
 
 var toString = Object.prototype.toString
@@ -1428,7 +908,7 @@ function isFunction (fn) {
       fn === window.prompt))
 };
 
-},{}],14:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 
 exports = module.exports = trim;
 
@@ -1444,7 +924,7 @@ exports.right = function(str){
   return str.replace(/\s*$/, '');
 };
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 var trim = _dereq_('trim')
   , forEach = _dereq_('for-each')
   , isArray = function(arg) {
@@ -1476,7 +956,7 @@ module.exports = function (headers) {
 
   return result
 }
-},{"for-each":12,"trim":14}],16:[function(_dereq_,module,exports){
+},{"for-each":8,"trim":10}],12:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1548,167 +1028,7 @@ exports["default"] = {
 };
 module.exports = exports["default"];
 
-},{"./dispatcher":19,"xhr":9}],17:[function(_dereq_,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-
-var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var _xhr = _dereq_('xhr');
-
-var _xhr2 = _interopRequireDefault(_xhr);
-
-var _qs = _dereq_("qs");
-
-var _qs2 = _interopRequireDefault(_qs);
-
-var _api = _dereq_("./api");
-
-var _api2 = _interopRequireDefault(_api);
-
-var Auth = (function () {
-	function Auth() {
-		_classCallCheck(this, Auth);
-	}
-
-	_createClass(Auth, [{
-		key: "init",
-		value: function init(opts) {
-			this.userInfoUrl = opts.userInfoUrl || null;
-			this.VRE_ID = opts.VRE_ID || "";
-			this.onAuthSuccess = opts.onAuthSuccess || false;
-			this.onAuthError = opts.onAuthError || false;
-
-			this.tokenPrefix = opts.tokenPrefix || "";
-			this.tokenPropertyName = "hi-" + this.VRE_ID.toLowerCase() + "-auth-token";
-			this.userData = null;
-
-			this.checkTokenInUrl();
-			if (this.getToken() !== null) {
-				this.fetchUserData();
-			}
-		}
-	}, {
-		key: "fetchUserData",
-		value: function fetchUserData() {
-			var _self = this;
-			(0, _xhr2["default"])({
-				method: 'GET',
-				uri: this.userInfoUrl,
-				headers: {
-					Authorization: this.getToken(),
-					VRE_ID: this.VRE_ID
-				}
-			}, function (err, resp, body) {
-				if (resp.statusCode === 401) {
-					_self.handleFetchError(resp);
-				} else if (resp.statusCode === 200) {
-					_self.handleFetchSuccess(resp);
-				}
-			});
-		}
-	}, {
-		key: "handleFetchSuccess",
-		value: function handleFetchSuccess(data) {
-			this.userData = JSON.parse(data.body);
-			if (this.onAuthSuccess) {
-				this.onAuthSuccess();
-			}
-		}
-	}, {
-		key: "handleFetchError",
-		value: function handleFetchError(data) {
-			this.userData = null;
-			this.removeToken();
-			if (this.onAuthError) {
-				this.onAuthError("User is unauthorized");
-			}
-		}
-	}, {
-		key: "basicLogin",
-		value: function basicLogin(url, username, password) {
-			var _self = this;
-			(0, _xhr2["default"])({
-				method: 'POST',
-				uri: url,
-				headers: {
-					Authorization: 'Basic ' + btoa(username + ':' + password)
-				}
-			}, function (err, resp, body) {
-				if (resp.statusCode === 401) {
-					_self.handleLoginError(resp);
-				} else if (resp.statusCode === 204) {
-					_self.handleLoginSuccess(resp);
-				}
-			});
-		}
-	}, {
-		key: "handleLoginError",
-		value: function handleLoginError(data) {
-			var body = JSON.parse(data.body);
-			this.removeToken();
-			if (this.onAuthError) {
-				this.onAuthError(body.message);
-			}
-		}
-	}, {
-		key: "handleLoginSuccess",
-		value: function handleLoginSuccess(data) {
-			this.setToken(data.headers.x_auth_token);
-			this.fetchUserData();
-		}
-	}, {
-		key: "checkTokenInUrl",
-		value: function checkTokenInUrl() {
-			var params = _qs2["default"].parse(window.location.search.substr(1));
-
-			if (params.hsid) {
-				var hsid = params.hsid;
-				delete params.hsid;
-				var newQs = _qs2["default"].stringify(params);
-				var newLocation = window.location.pathname + (newQs.length === 0 ? '' : '?' + newQs);
-
-				this.setToken(hsid);
-
-				history.replaceState(history.state, 'tokened', newLocation);
-			}
-		}
-	}, {
-		key: "setToken",
-		value: function setToken(token) {
-			localStorage.setItem(this.tokenPropertyName, this.tokenPrefix + token);
-		}
-	}, {
-		key: "getToken",
-		value: function getToken() {
-			return localStorage.getItem(this.tokenPropertyName);
-		}
-	}, {
-		key: "removeToken",
-		value: function removeToken() {
-			localStorage.removeItem(this.tokenPropertyName);
-		}
-	}, {
-		key: "isAuthenticated",
-		value: function isAuthenticated() {
-			return this.getToken() !== null && this.userData !== null;
-		}
-	}]);
-
-	return Auth;
-})();
-
-exports["default"] = new Auth();
-module.exports = exports["default"];
-
-},{"./api":16,"qs":4,"xhr":9}],18:[function(_dereq_,module,exports){
+},{"./dispatcher":14,"xhr":5}],13:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1728,10 +1048,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var _react = _dereq_("react");
 
 var _react2 = _interopRequireDefault(_react);
-
-var _auth = _dereq_("./auth");
-
-var _auth2 = _interopRequireDefault(_auth);
 
 var _loginStore = _dereq_("./login-store");
 
@@ -1829,7 +1145,7 @@ Basic.defaultProps = {
 exports["default"] = Basic;
 module.exports = exports["default"];
 
-},{"./api":16,"./auth":17,"./login-store":22,"react":"react"}],19:[function(_dereq_,module,exports){
+},{"./api":12,"./login-store":17,"react":"react"}],14:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1857,16 +1173,6 @@ var LoginDispatcher = (function (_Dispatcher) {
 
 	_createClass(LoginDispatcher, [{
 		key: "handleServerAction",
-
-		/*
-  	handleViewAction(action) {
-  		return this.dispatch({
-  			source: "VIEW_ACTION",
-  			action: action
-  		});
-  	}
-  */
-
 		value: function handleServerAction(action) {
 			return this.dispatch({
 				source: "SERVER_ACTION",
@@ -1881,7 +1187,7 @@ var LoginDispatcher = (function (_Dispatcher) {
 exports["default"] = new LoginDispatcher();
 module.exports = exports["default"];
 
-},{"flux":1}],20:[function(_dereq_,module,exports){
+},{"flux":1}],15:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1902,13 +1208,17 @@ var _react = _dereq_("react");
 
 var _react2 = _interopRequireDefault(_react);
 
+var _loginStore = _dereq_("./login-store");
+
+var _loginStore2 = _interopRequireDefault(_loginStore);
+
 var Federated = (function (_React$Component) {
 	_inherits(Federated, _React$Component);
 
-	function Federated() {
+	function Federated(props) {
 		_classCallCheck(this, Federated);
 
-		_get(Object.getPrototypeOf(Federated.prototype), "constructor", this).apply(this, arguments);
+		_get(Object.getPrototypeOf(Federated.prototype), "constructor", this).call(this, props);
 	}
 
 	_createClass(Federated, [{
@@ -1936,19 +1246,17 @@ var Federated = (function (_React$Component) {
 
 Federated.propTypes = {
 	url: _react2["default"].PropTypes.string.isRequired,
-	tokenPrefix: _react2["default"].PropTypes.string,
 	label: _react2["default"].PropTypes.string
 };
 
 Federated.defaultProps = {
-	label: "Federated Login",
-	tokenPrefix: ""
+	label: "Federated Login"
 };
 
 exports["default"] = Federated;
 module.exports = exports["default"];
 
-},{"react":"react"}],21:[function(_dereq_,module,exports){
+},{"./login-store":17,"react":"react"}],16:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1973,12 +1281,14 @@ exports.Login = _login2["default"];
 exports.Federated = _federated2["default"];
 exports.Basic = _basic2["default"];
 
-},{"./basic":18,"./federated":20,"./login":23}],22:[function(_dereq_,module,exports){
+},{"./basic":13,"./federated":15,"./login":18}],17:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
+
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -2004,37 +1314,114 @@ var LoginStore = (function (_EventEmitter) {
 	function LoginStore() {
 		_classCallCheck(this, LoginStore);
 
-		_get(Object.getPrototypeOf(LoginStore.prototype), "constructor", this).apply(this, arguments);
+		_get(Object.getPrototypeOf(LoginStore.prototype), "constructor", this).call(this);
+
+		this.errorMessage = null;
+		this.userData = null;
+		this.vreId = null;
+		this.tokenPropertyName = null;
+		this.usePrefix = false;
 	}
 
 	_createClass(LoginStore, [{
-		key: "listen",
-		value: function listen(callback) {
-			this.addListener(CHANGE_EVENT, callback);
+		key: "intializeVre",
+		value: function intializeVre(vreId) {
+			this.vreId = vreId;
+			this.tokenPropertyName = "hi-" + this.vreId.toLowerCase() + "-auth-token";
+			this.checkTokenInUrl();
+		}
+	}, {
+		key: "setUsePrefix",
+		value: function setUsePrefix(usePrefix) {
+			this.usePrefix = usePrefix;
+		}
+	}, {
+		key: "checkTokenInUrl",
+		value: function checkTokenInUrl() {
+			var path = window.location.search.substr(1);
+			var params = path.split('&');
+
+			for (var i in params) {
+				var _params$i$split = params[i].split('=');
+
+				var _params$i$split2 = _slicedToArray(_params$i$split, 2);
+
+				var key = _params$i$split2[0];
+				var value = _params$i$split2[1];
+
+				if (key === 'hsid') {
+					var newLocation = window.location.href.replace(params[i], "").replace(/[\?\&]$/, "");
+					this.setToken((this.usePrefix ? "Federated " : "") + value);
+					history.replaceState(history.state, 'tokened', newLocation);
+					break;
+				}
+			}
 		}
 	}, {
 		key: "getState",
 		value: function getState() {
 			return {
 				token: this.getToken(),
-				status: this.status,
-				errorMessage: this.errorMessage
+				tokenPropertyName: this.tokenPropertyName,
+				errorMessage: this.errorMessage,
+				authenticated: this.getToken() !== null && this.userData !== null,
+				userData: this.userData
 			};
+		}
+	}, {
+		key: "onMissingTokenPropertyName",
+		value: function onMissingTokenPropertyName() {
+			console.warn("WARNING: missing tokenPropertyName, call intializeVre before attempting authentication");
 		}
 	}, {
 		key: "setToken",
 		value: function setToken(token) {
+			if (this.tokenPropertyName === null) {
+				return this.onMissingTokenPropertyName();
+			}
 			localStorage.setItem(this.tokenPropertyName, token);
 		}
 	}, {
 		key: "getToken",
 		value: function getToken() {
+			if (this.tokenPropertyName === null) {
+				return this.onMissingTokenPropertyName();
+			}
 			return localStorage.getItem(this.tokenPropertyName);
 		}
 	}, {
 		key: "removeToken",
 		value: function removeToken() {
+			if (this.tokenPropertyName === null) {
+				return this.onMissingTokenPropertyName();
+			}
 			localStorage.removeItem(this.tokenPropertyName);
+		}
+	}, {
+		key: "receiveBasicAuth",
+		value: function receiveBasicAuth(data) {
+
+			// TODO: find out correct tokenPrefix from apidoc...
+			this.setToken((this.usePrefix ? "SimpleAuth " : "") + data.headers.x_auth_token);
+			this.errorMessage = null;
+		}
+	}, {
+		key: "receiveBasicAuthFailure",
+		value: function receiveBasicAuthFailure(data) {
+			var body = JSON.parse(data.body);
+			this.errorMessage = body.message;
+			this.removeToken();
+		}
+	}, {
+		key: "receiveUserData",
+		value: function receiveUserData(data) {
+			this.userData = JSON.parse(data.body);
+		}
+	}, {
+		key: "receiveUserDataFailure",
+		value: function receiveUserDataFailure(data) {
+			this.removeToken();
+			this.errorMessage = "Unauthorized";
 		}
 	}, {
 		key: "stopListening",
@@ -2042,33 +1429,9 @@ var LoginStore = (function (_EventEmitter) {
 			this.removeListener(CHANGE_EVENT, callback);
 		}
 	}, {
-		key: "receiveBasicAuth",
-		value: function receiveBasicAuth(data) {
-			console.log("receiveBasicAuth", data);
-
-			// TODO: find out correct tokenPrefix from apidoc...
-			this.setToken( /*"basic " + */data.headers.x_auth_token);
-			this.status = "token-received";
-			this.errorMessage = null;
-		}
-	}, {
-		key: "receiveBasicAuthFailure",
-		value: function receiveBasicAuthFailure(data) {
-			console.log("receiveBasicAuthFailure", data);
-			var body = JSON.parse(data.body);
-			this.status = "basic-auth-failure";
-			this.errorMessage = body.message;
-			this.removeToken();
-		}
-	}, {
-		key: "receiveUserData",
-		value: function receiveUserData(data) {
-			console.log("receiveUserData", data);
-		}
-	}, {
-		key: "receiveUserDataFailure",
-		value: function receiveUserDataFailure(data) {
-			console.log("receiveUserDataFailure", data);
+		key: "listen",
+		value: function listen(callback) {
+			this.addListener(CHANGE_EVENT, callback);
 		}
 	}]);
 
@@ -2104,7 +1467,7 @@ loginStore.dispatcherIndex = _dispatcher2["default"].register(dispatcherCallback
 exports["default"] = loginStore;
 module.exports = exports["default"];
 
-},{"./dispatcher":19,"events":8}],23:[function(_dereq_,module,exports){
+},{"./dispatcher":14,"events":4}],18:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2125,10 +1488,6 @@ var _react = _dereq_("react");
 
 var _react2 = _interopRequireDefault(_react);
 
-var _auth = _dereq_("./auth");
-
-var _auth2 = _interopRequireDefault(_auth);
-
 var _loginStore = _dereq_("./login-store");
 
 var _loginStore2 = _interopRequireDefault(_loginStore);
@@ -2136,6 +1495,14 @@ var _loginStore2 = _interopRequireDefault(_loginStore);
 var _dispatcher = _dereq_("./dispatcher");
 
 var _dispatcher2 = _interopRequireDefault(_dispatcher);
+
+var _federated = _dereq_("./federated");
+
+var _federated2 = _interopRequireDefault(_federated);
+
+var _api = _dereq_("./api");
+
+var _api2 = _interopRequireDefault(_api);
 
 var LoginComponent = (function (_React$Component) {
 	_inherits(LoginComponent, _React$Component);
@@ -2145,25 +1512,22 @@ var LoginComponent = (function (_React$Component) {
 
 		_get(Object.getPrototypeOf(LoginComponent.prototype), "constructor", this).call(this, props);
 
-		this.state = {
-			opened: false,
-			authenticated: false,
-			errorMessage: null
-		};
-
-		_auth2["default"].init({
-			userInfoUrl: this.props.userInfoUrl,
-			VRE_ID: this.props.VRE_ID,
-			onAuthSuccess: this.onAuthSuccess.bind(this),
-			onAuthError: this.onAuthError.bind(this)
-		});
+		_loginStore2["default"].setUsePrefix(this.props.useTokenPrefix);
+		_loginStore2["default"].intializeVre(this.props.VRE_ID);
+		this.state = _loginStore2["default"].getState();
+		this.state.opened = false;
 	}
 
 	_createClass(LoginComponent, [{
 		key: "onStoreChange",
 		value: function onStoreChange() {
-			this.setState({ errorMessage: _loginStore2["default"].getState().errorMessage });
-			console.log("Store change", _loginStore2["default"].getState());
+			this.setState(_loginStore2["default"].getState());
+
+			if (this.state.token != null && !this.state.authenticated) {
+				_api2["default"].fetchUserData(this.props.userInfoUrl, this.state.token, this.props.VRE_ID);
+			} else {
+				this.props.onChange(_loginStore2["default"].getState());
+			}
 		}
 	}, {
 		key: "toggleLogin",
@@ -2171,39 +1535,15 @@ var LoginComponent = (function (_React$Component) {
 			this.setState({ opened: !this.state.opened });
 		}
 	}, {
-		key: "onAuthSuccess",
-		value: function onAuthSuccess() {
-			this.setState({ authenticated: true, errorMessage: "" });
-			this.props.onChange({
-				authenticated: true,
-				userData: _auth2["default"].userData
-			});
-		}
-	}, {
-		key: "onAuthError",
-		value: function onAuthError(msg) {
-			this.setState({ authenticated: false, errorMessage: msg });
-			this.props.onChange({
-				authenticated: false,
-				userData: null
-			});
-		}
-	}, {
 		key: "componentDidMount",
 		value: function componentDidMount() {
-			var _this = this;
-
 			_loginStore2["default"].listen(this.onStoreChange.bind(this));
 
-			document.addEventListener("click", this.handleDocumentClick.bind(this), false);
-
-			if (this.props.async != null) {
-				this.props.async(function (response) {
-					_this.setState({
-						options: response
-					});
-				});
+			if (this.state.token != null) {
+				_api2["default"].fetchUserData(this.props.userInfoUrl, this.state.token, this.props.VRE_ID);
 			}
+
+			document.addEventListener("click", this.handleDocumentClick.bind(this), false);
 		}
 	}, {
 		key: "componentWillUnmount",
@@ -2229,40 +1569,35 @@ var LoginComponent = (function (_React$Component) {
 					"div",
 					{ className: "hire-login" },
 					this.props.loggedInLabel ? this.props.loggedInLabel + " " : "",
-					_auth2["default"].userData.displayName
+					this.state.userData.displayName
 				);
 			} else {
-				var loginFields = this.state.opened ? _react2["default"].createElement(
-					"ul",
-					null,
-					_react2["default"].Children.map(this.props.children, function (child) {
-						console.log(child);return _react2["default"].createElement(
-							"li",
-							null,
-							child
-						);
-					}),
-					_react2["default"].createElement(
-						"li",
-						{ className: "hire-login-error" },
-						this.state.errorMessage
-					)
-				) : null;
 
 				return _react2["default"].createElement(
 					"div",
 					{ className: "hire-login" },
 					_react2["default"].createElement(
-						"div",
-						null,
-						_react2["default"].createElement(
-							"button",
-							{ className: "login-toggle",
-								onClick: this.toggleLogin.bind(this) },
-							this.props.buttonLabel
-						)
+						"button",
+						{ className: this.state.opened ? 'toggle-opened' : 'toggle-closed',
+							onClick: this.toggleLogin.bind(this) },
+						this.props.buttonLabel
 					),
-					loginFields
+					_react2["default"].createElement(
+						"div",
+						{ style: this.state.opened ? { display: "block" } : { display: "none" } },
+						_react2["default"].Children.map(this.props.children, function (child) {
+							return _react2["default"].createElement(
+								"div",
+								null,
+								child
+							);
+						}),
+						_react2["default"].createElement(
+							"div",
+							{ className: "hire-login-error" },
+							this.state.errorMessage
+						)
+					)
 				);
 			}
 		}
@@ -2272,20 +1607,24 @@ var LoginComponent = (function (_React$Component) {
 })(_react2["default"].Component);
 
 LoginComponent.propTypes = {
-	VRE_ID: _react2["default"].PropTypes.string,
-	userInfoUrl: _react2["default"].PropTypes.string,
+	buttonLabel: _react2["default"].PropTypes.string,
 	loggedInLabel: _react2["default"].PropTypes.string,
+	useTokenPrefix: _react2["default"].PropTypes.bool,
+	VRE_ID: _react2["default"].PropTypes.string.isRequired,
+	userInfoUrl: _react2["default"].PropTypes.string.isRequired,
 	onChange: _react2["default"].PropTypes.func.isRequired
+
 };
 
 LoginComponent.defaultProps = {
 	buttonLabel: "Login",
 	loggedInLabel: "Logged in as",
-	VRE_ID: null
+	VRE_ID: null,
+	useTokenPrefix: false
 };
 
 exports["default"] = LoginComponent;
 module.exports = exports["default"];
 
-},{"./auth":17,"./dispatcher":19,"./login-store":22,"react":"react"}]},{},[21])(21)
+},{"./api":12,"./dispatcher":14,"./federated":15,"./login-store":17,"react":"react"}]},{},[16])(16)
 });
