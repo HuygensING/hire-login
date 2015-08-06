@@ -5,10 +5,10 @@ import loginStore from "../src/login-store";
 
 describe("loginStore", function() {
 	it("Should always export with required properties initialized", function() {
-		(loginStore.errorMessage === null).should.be.true;
-		(loginStore.userData === null).should.be.true;
-		(loginStore.vreId === null).should.be.true;
-		(loginStore.tokenPropertyName === null).should.be.true;
+		(loginStore.errorMessage === null).should.equal(true);
+		(loginStore.userData === null).should.equal(true);
+		(loginStore.vreId === null).should.equal(true);
+		(loginStore.tokenPropertyName === null).should.equal(true);
 		loginStore.usePrefix.should.equal(false);
 	});
 
@@ -55,7 +55,32 @@ describe("loginStore", function() {
 
 		loginStore.onMissingTokenPropertyName();
 		sinon.assert.calledOnce(console.warn);
+
 		console.warn.restore();
+	});
+
+	it("Should call setToken() correctly with receiveBasicAuth() and assign null to errorMessage", function() {
+		sinon.stub(loginStore, 'setToken', function(token) { 
+			token.should.equal('dummy-token');
+		});
+
+		loginStore.errorMessage = "remove me";
+		loginStore.receiveBasicAuth({headers: {x_auth_token: "dummy-token"}});
+		(loginStore.errorMessage === null).should.equal(true);
+		sinon.assert.calledOnce(loginStore.setToken);
+
+		loginStore.setToken.restore();
+
+		sinon.stub(loginStore, 'setToken', function(token) { 
+			token.should.equal('SimpleAuth dummy-token');
+		});
+
+		loginStore.usePrefix = true;
+		loginStore.receiveBasicAuth({headers: {x_auth_token: "dummy-token"}});
+		sinon.assert.calledOnce(loginStore.setToken);
+
+
+		loginStore.setToken.restore();
 	});
 
 /*
