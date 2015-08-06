@@ -15,7 +15,7 @@ class LoginStore extends EventEmitter {
 		this.usePrefix = false;
 	}
 
-	intializeVre(vreId) {
+	initializeVre(vreId) {
 		this.vreId = vreId;
 		this.tokenPropertyName = "hi-" + this.vreId.toLowerCase() + "-auth-token";
 		this.checkTokenInUrl();
@@ -40,7 +40,6 @@ class LoginStore extends EventEmitter {
 				break;
 			}
 		}
-
 	}
 
 	getState() {
@@ -54,7 +53,7 @@ class LoginStore extends EventEmitter {
 	}
 
 	onMissingTokenPropertyName() {
-		console.warn("WARNING: missing tokenPropertyName, call intializeVre before attempting authentication");
+		console.warn("WARNING: missing tokenPropertyName, call initializeVre before attempting authentication");
 	}
 
 	setToken(token) {

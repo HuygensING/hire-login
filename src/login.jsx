@@ -10,7 +10,7 @@ class LoginComponent extends React.Component {
 		super(props);
 
 		loginStore.setUsePrefix(this.props.useTokenPrefix);
-		loginStore.intializeVre(this.props.VRE_ID);
+		loginStore.initializeVre(this.props.VRE_ID);
 		this.state = loginStore.getState();
 		this.state.opened = false;
 	}
