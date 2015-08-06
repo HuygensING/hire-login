@@ -3,6 +3,10 @@ import sinon from "sinon";
 
 import loginStore from "../src/login-store";
 
+global.window = {};
+global.history = {};
+global.localStorage = {};
+
 describe("loginStore", function() {
 	it("Should always export with required properties initialized", function() {
 		(loginStore.errorMessage === null).should.equal(true);
@@ -84,64 +88,161 @@ describe("loginStore", function() {
 	});
 
 	it("Should call removeToken() from receiveBasicAuthFailure() and set an error message from response data", function() {
-		
+		sinon.stub(loginStore, 'removeToken');
+
+		loginStore.errorMessage = null;
+		loginStore.receiveBasicAuthFailure({
+			body: '{"message" : "dummy-msg"}'
+		});
+		sinon.assert.calledOnce(loginStore.removeToken);
+		loginStore.errorMessage.should.equal("dummy-msg");
+
+		loginStore.removeToken.restore();
 	});
 
-/*
+	it("Should set userData correctly with receiveUserData()", function() {
+		loginStore.userData = null;
+		loginStore.receiveUserData({
+			body: '{"dummy-key": "dummy-data"}'
+		});
+		loginStore.userData['dummy-key'].should.equal("dummy-data");
+	});
 
-	receiveBasicAuthFailure(data) {
-		let body = JSON.parse(data.body);
-		this.errorMessage = body.message;
-		this.removeToken();
-	}
+	it("Should remove the token and set an error message with receiveUserDataFailure()", function() {
+		sinon.stub(loginStore, 'removeToken');
 
-	receiveUserData(data) {
-		this.userData = JSON.parse(data.body);
-	}
+		loginStore.errorMessage = null;
+		loginStore.receiveUserDataFailure();
+		sinon.assert.calledOnce(loginStore.removeToken);
+		loginStore.errorMessage.should.equal("Unauthorized");
 
-	receiveUserDataFailure(data) {
-		this.removeToken();
-		this.errorMessage = "Unauthorized";
-	}
+		loginStore.removeToken.restore();
+	});
 
-	stopListening(callback) { this.removeListener(CHANGE_EVENT, callback); }
-	listen(callback) { this.addListener(CHANGE_EVENT, callback); }
+	it("Should remove a change listener with stopListening()", function() {
+		let cb = function() {};
+		sinon.stub(loginStore, 'removeListener', function(type, callback) {
+			type.should.equal("change");
+			callback.should.equal(cb);
+		});
 
-	checkTokenInUrl() {
-		let path = window.location.search.substr(1);
-		let params = path.split('&');
+		loginStore.stopListening(cb);
+		sinon.assert.calledOnce(loginStore.removeListener);
+		loginStore.removeListener.restore();
+	});
 
-		for(let i in params) {
-			let [key, value] = params[i].split('=');
-			if(key === 'hsid') {
-				let newLocation = window.location.href
-					.replace(params[i], "")
-					.replace(/[\?\&]$/, "");
-				this.setToken((this.usePrefix ? "Federated " : "") + value);
-				history.replaceState(history.state, 'tokened', newLocation);
-				break;
-			}
-		}
-	}
+	it("Should add a change listener with addListener()", function() {
+		let cb = function() {};
+		sinon.stub(loginStore, 'addListener', function(type, callback) {
+			type.should.equal("change");
+			callback.should.equal(cb);
+		});
 
-	setToken(token) {
-		if(this.tokenPropertyName === null) { return this.onMissingTokenPropertyName() }
-		localStorage.setItem(this.tokenPropertyName, token);
-	}
+		loginStore.listen(cb);
+		sinon.assert.calledOnce(loginStore.addListener);
 
-	getToken() {
-		if(this.tokenPropertyName === null) { return this.onMissingTokenPropertyName() }
-		return localStorage.getItem(this.tokenPropertyName);
-	}
+		loginStore.addListener.restore();
+	});
 
+	it("Should check for a Federated token in the url with checkTokenInUrl()", function() {
+		window.location = {
+			search: "?foo=bar&hsid=dummy-token",
+			href: "http://domain.name/path?foo=bar&hsid=dummy-token"
+		};
 
-	removeToken() {
-		if(this.tokenPropertyName === null) { return this.onMissingTokenPropertyName() }
-		localStorage.removeItem(this.tokenPropertyName);
-	}
+		history.state = {originalState: "dummy-state"};
+		history.replaceState = function(state, name, loc) {
+			state.should.equal(history.state);
+			loc.should.equal("http://domain.name/path?foo=bar");
+		};
 
+		sinon.stub(loginStore, "setToken", function(token) {
+			token.should.equal("Federated dummy-token");
+		});
 
+		loginStore.usePrefix = true;
+		loginStore.checkTokenInUrl();
+		sinon.assert.calledOnce(loginStore.setToken);
+		loginStore.setToken.restore();
 
-*/
+		sinon.stub(loginStore, "setToken", function(token) {
+			token.should.equal("dummy-token");
+		});
+
+		loginStore.usePrefix = false;
+		loginStore.checkTokenInUrl();
+		sinon.assert.calledOnce(loginStore.setToken);
+
+		loginStore.setToken.restore();
+
+	});
+
+	it("Should not set a Federated token without hsid param in the url with checkTokenInUrl()", function() {
+		window.location = {
+			search: "?foo=bar",
+			href: "http://domain.name/path?foo=bar"
+		};
+
+		sinon.stub(loginStore, "setToken")
+
+		loginStore.checkTokenInUrl();
+		sinon.assert.notCalled(loginStore.setToken);
+
+		loginStore.setToken.restore();
+	});
+
+	it("Should save the token to the localStorage with setToken() or fire a warning when tokenPropertyName is null", function() {
+		localStorage.setItem = function(key, val) {
+			key.should.equal(loginStore.tokenPropertyName);
+			val.should.equal("dummy-token");
+		};
+
+		loginStore.tokenPropertyName = "dummy-name";
+		loginStore.setToken("dummy-token");
+
+		sinon.stub(loginStore, "onMissingTokenPropertyName");
+
+		loginStore.tokenPropertyName = null;
+		loginStore.setToken("");
+		sinon.assert.calledOnce(loginStore.onMissingTokenPropertyName);
+
+		loginStore.onMissingTokenPropertyName.restore();
+	});
+
+	it("Should return the token from the localStorage with getToken() or fire a warning when tokenPropertyName is null", function() {
+		localStorage.getItem = function(key) {
+			key.should.equal(loginStore.tokenPropertyName);
+			return "dummy-token";
+		};
+
+		loginStore.tokenPropertyName = "dummy-name";
+		let retVal = loginStore.getToken();
+		retVal.should.equal("dummy-token");
+
+		sinon.stub(loginStore, "onMissingTokenPropertyName");
+
+		loginStore.tokenPropertyName = null;
+		loginStore.getToken();
+		sinon.assert.calledOnce(loginStore.onMissingTokenPropertyName);
+
+		loginStore.onMissingTokenPropertyName.restore();
+	});
+
+	it("Should remove the token from the localStorage with removeToken() or fire a warning when tokenPropertyName is null", function() {
+		localStorage.removeItem = function(key) {
+			key.should.equal(loginStore.tokenPropertyName);
+		};
+
+		loginStore.tokenPropertyName = "dummy-name";
+		loginStore.removeToken();
+
+		sinon.stub(loginStore, "onMissingTokenPropertyName");
+
+		loginStore.tokenPropertyName = null;
+		loginStore.removeToken();
+		sinon.assert.calledOnce(loginStore.onMissingTokenPropertyName);
+
+		loginStore.onMissingTokenPropertyName.restore();
+	});
 
 });
