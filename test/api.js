@@ -18,6 +18,7 @@ describe("api", function() {
 		});
 
 		api.basicLogin("dummy-url", "dummy-user", "dummy-pass");
+		sinon.assert.calledOnce(api.performXhr);
 		api.performXhr.restore();
 	});
 
@@ -31,6 +32,7 @@ describe("api", function() {
 		});
 
 		api.fetchUserData("dummy-url", "dummy-token", "dummy-vre");
+		sinon.assert.calledOnce(api.performXhr);
 		api.performXhr.restore();
 	});
 });

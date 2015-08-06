@@ -1,7 +1,8 @@
 import should from "should";
+import sinon from "sinon";
+
 import serverActions from "../src/actions";
 import dispatcher from "../src/dispatcher";
-import sinon from "sinon";
 
 describe("serverActions", function() {
 
