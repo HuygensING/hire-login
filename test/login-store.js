@@ -83,15 +83,11 @@ describe("loginStore", function() {
 		loginStore.setToken.restore();
 	});
 
+	it("Should call removeToken() from receiveBasicAuthFailure() and set an error message from response data", function() {
+		
+	});
+
 /*
-
-	receiveBasicAuth(data) {
-
-		// TODO: find out correct tokenPrefix from apidoc...
-		this.setToken((this.usePrefix ? "SimpleAuth " : "") + data.headers.x_auth_token);
-		this.errorMessage = null;
-
-	}
 
 	receiveBasicAuthFailure(data) {
 		let body = JSON.parse(data.body);
