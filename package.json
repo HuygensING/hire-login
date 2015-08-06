@@ -10,7 +10,6 @@
   "peerDependencies": {
     "xhr": "^2.0.3",
     "react": "^0.13.3",
-    "qs": "^4.0.0"
   },
   "devDependencies": {
     "babel": "^5.8.12",
@@ -29,10 +28,9 @@
     "react": "^0.13.3",
     "eslint": "~1.0.0",
     "babel-eslint": "~4.0.5",
-    "qs": "^4.0.0",
-    "expect": "~1.8.0",
     "flux": "~2.0.3",
-    "events": "~1.0.2"
+    "events": "~1.0.2",
+    "sinon": "~1.15.4",
   },
   "repository": {
     "type": "git",
