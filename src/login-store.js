@@ -16,7 +16,7 @@ class LoginStore extends EventEmitter {
 	}
 
 	initializeVre(vreId) {
-		this.vreId = vreId;
+		this.vreId = vreId || "";
 		this.tokenPropertyName = "hi-" + this.vreId.toLowerCase() + "-auth-token";
 		this.checkTokenInUrl();
 	}

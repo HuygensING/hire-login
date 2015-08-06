@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 node_modules/.bin/watchify src/index.jsx \
