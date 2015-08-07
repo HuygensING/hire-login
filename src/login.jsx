@@ -9,7 +9,7 @@ class LoginComponent extends React.Component {
 	constructor(props) {
 		super(props);
 
-		loginStore.initializeVre(this.props.VRE_ID);
+		loginStore.setTokenPropertyName(this.props.appId);
 		this.state = loginStore.getState();
 		this.state.opened = false;
 	}
@@ -19,7 +19,7 @@ class LoginComponent extends React.Component {
 		this.setState(loginStore.getState());
 
 		if(this.state.token != null && !this.state.authenticated) {
-			api.fetchUserData(this.props.userInfoUrl, this.state.token, this.props.VRE_ID);
+			api.fetchUserData(this.props.userUrl, this.state.token, this.props.headers);
 		} else {
 			this.props.onChange(loginStore.getState());
 		}
@@ -33,7 +33,7 @@ class LoginComponent extends React.Component {
 		loginStore.listen(this.onStoreChange.bind(this));
 
 		if(this.state.token != null) {
-			api.fetchUserData(this.props.userInfoUrl, this.state.token, this.props.VRE_ID);			
+			api.fetchUserData(this.props.userUrl, this.state.token, this.props.headers);			
 		}
 
 		document.addEventListener("click", this.handleDocumentClick.bind(this), false);
@@ -82,8 +82,9 @@ class LoginComponent extends React.Component {
 LoginComponent.propTypes = {
 	buttonLabel: React.PropTypes.string,
 	loggedInLabel: React.PropTypes.string,
-	VRE_ID: React.PropTypes.string.isRequired,
-	userInfoUrl: React.PropTypes.string.isRequired,
+	headers: React.PropTypes.object,
+	userUrl: React.PropTypes.string.isRequired,
+	appId: React.PropTypes.string,
 	onChange: React.PropTypes.func.isRequired,
 
 }
@@ -91,7 +92,8 @@ LoginComponent.propTypes = {
 LoginComponent.defaultProps = {
 	buttonLabel: "Login",
 	loggedInLabel: "Logged in as",
-	VRE_ID: null,
+	appId: "default-login",
+	headers: {}
 };
 
 export default LoginComponent;

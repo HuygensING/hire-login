@@ -1006,6 +1006,8 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 var _xhr = _dereq_("xhr");
@@ -1036,14 +1038,14 @@ exports["default"] = {
 		}, _actions2["default"].receiveBasicLogin);
 	},
 
-	fetchUserData: function fetchUserData(url, token, VRE_ID) {
+	fetchUserData: function fetchUserData(url, token, optHeaders) {
+		var headers = optHeaders || {};
+		_extends(headers, { Authorization: token });
+
 		this.performXhr({
 			method: 'GET',
 			uri: url,
-			headers: {
-				Authorization: token,
-				VRE_ID: VRE_ID
-			}
+			headers: headers
 		}, _actions2["default"].receiveUserData);
 	}
 };
@@ -1339,15 +1341,13 @@ var LoginStore = (function (_EventEmitter) {
 
 		this.errorMessage = null;
 		this.userData = null;
-		this.vreId = null;
 		this.tokenPropertyName = null;
 	}
 
 	_createClass(LoginStore, [{
-		key: "initializeVre",
-		value: function initializeVre(vreId) {
-			this.vreId = vreId || "";
-			this.tokenPropertyName = "hi-" + this.vreId.toLowerCase() + "-auth-token";
+		key: "setTokenPropertyName",
+		value: function setTokenPropertyName(tpn) {
+			this.tokenPropertyName = tpn;
 			this.checkTokenInUrl();
 		}
 	}, {
@@ -1526,7 +1526,7 @@ var LoginComponent = (function (_React$Component) {
 
 		_get(Object.getPrototypeOf(LoginComponent.prototype), "constructor", this).call(this, props);
 
-		_loginStore2["default"].initializeVre(this.props.VRE_ID);
+		_loginStore2["default"].setTokenPropertyName(this.props.appId);
 		this.state = _loginStore2["default"].getState();
 		this.state.opened = false;
 	}
@@ -1537,7 +1537,7 @@ var LoginComponent = (function (_React$Component) {
 			this.setState(_loginStore2["default"].getState());
 
 			if (this.state.token != null && !this.state.authenticated) {
-				_api2["default"].fetchUserData(this.props.userInfoUrl, this.state.token, this.props.VRE_ID);
+				_api2["default"].fetchUserData(this.props.userUrl, this.state.token, this.props.headers);
 			} else {
 				this.props.onChange(_loginStore2["default"].getState());
 			}
@@ -1553,7 +1553,7 @@ var LoginComponent = (function (_React$Component) {
 			_loginStore2["default"].listen(this.onStoreChange.bind(this));
 
 			if (this.state.token != null) {
-				_api2["default"].fetchUserData(this.props.userInfoUrl, this.state.token, this.props.VRE_ID);
+				_api2["default"].fetchUserData(this.props.userUrl, this.state.token, this.props.headers);
 			}
 
 			document.addEventListener("click", this.handleDocumentClick.bind(this), false);
@@ -1622,8 +1622,9 @@ var LoginComponent = (function (_React$Component) {
 LoginComponent.propTypes = {
 	buttonLabel: _react2["default"].PropTypes.string,
 	loggedInLabel: _react2["default"].PropTypes.string,
-	VRE_ID: _react2["default"].PropTypes.string.isRequired,
-	userInfoUrl: _react2["default"].PropTypes.string.isRequired,
+	headers: _react2["default"].PropTypes.object,
+	userUrl: _react2["default"].PropTypes.string.isRequired,
+	appId: _react2["default"].PropTypes.string,
 	onChange: _react2["default"].PropTypes.func.isRequired
 
 };
@@ -1631,7 +1632,8 @@ LoginComponent.propTypes = {
 LoginComponent.defaultProps = {
 	buttonLabel: "Login",
 	loggedInLabel: "Logged in as",
-	VRE_ID: null
+	appId: "default-login",
+	headers: {}
 };
 
 exports["default"] = LoginComponent;

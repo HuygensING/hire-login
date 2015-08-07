@@ -7,5 +7,5 @@ node_modules/.bin/watchify src/index.jsx \
   --external react \
   --outfile 'node_modules/.bin/derequire > build/index.js' \
   --standalone HireFormsLogin \
-  --transform [ babelify ] \
+  --transform [ babelify --plugins object-assign ] \
   --verbose

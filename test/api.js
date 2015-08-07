@@ -31,7 +31,7 @@ describe("api", function() {
 			callback.should.equal(serverActions.receiveUserData);
 		});
 
-		api.fetchUserData("dummy-url", "dummy-token", "dummy-vre");
+		api.fetchUserData("dummy-url", "dummy-token", {VRE_ID: "dummy-vre"});
 		sinon.assert.calledOnce(api.performXhr);
 		api.performXhr.restore();
 	});

@@ -12,18 +12,17 @@ describe("loginStore", function() {
 	it("Should always export with required properties initialized", function() {
 		(loginStore.errorMessage === null).should.equal(true);
 		(loginStore.userData === null).should.equal(true);
-		(loginStore.vreId === null).should.equal(true);
 		(loginStore.tokenPropertyName === null).should.equal(true);
 	});
 
 
-	it("Should set the vreId, tokenPropertyName correctly and call checkTokenInUrl() with initializeVre()", function() {
+	it("Should set the tokenPropertyName correctly and call checkTokenInUrl() with setTokenPropertyName()", function() {
+
 		sinon.stub(loginStore, 'checkTokenInUrl');
 
-		loginStore.initializeVre("DummyVre");
+		loginStore.setTokenPropertyName("dummy-tpn");
 		sinon.assert.calledOnce(loginStore.checkTokenInUrl);
-		loginStore.vreId.should.equal("DummyVre");
-		loginStore.tokenPropertyName.should.equal("hi-dummyvre-auth-token");
+		loginStore.tokenPropertyName.should.equal("dummy-tpn");
 
 		loginStore.checkTokenInUrl.restore();
 

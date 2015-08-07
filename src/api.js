@@ -19,14 +19,14 @@ export default {
 		},	serverActions.receiveBasicLogin);
 	},
 
-	fetchUserData(url, token, VRE_ID) {
+	fetchUserData(url, token, optHeaders) {
+		let headers = optHeaders || {};
+		Object.assign(headers, {Authorization: token})
+
 		this.performXhr({
 			method: 'GET',
 			uri: url,
-			headers: {
-				Authorization: token,
-				VRE_ID: VRE_ID
-			}
+			headers: headers
 		},  serverActions.receiveUserData);
 	}
 };
