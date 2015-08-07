@@ -810,7 +810,6 @@ function createXHR(options, callback) {
 function noop() {}
 
 },{"global/window":6,"once":7,"parse-headers":11}],6:[function(_dereq_,module,exports){
-(function (global){
 if (typeof window !== "undefined") {
     module.exports = window;
 } else if (typeof global !== "undefined") {
@@ -821,7 +820,6 @@ if (typeof window !== "undefined") {
     module.exports = {};
 }
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],7:[function(_dereq_,module,exports){
 module.exports = once
 
