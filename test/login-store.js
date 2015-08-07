@@ -14,7 +14,6 @@ describe("loginStore", function() {
 		(loginStore.userData === null).should.equal(true);
 		(loginStore.vreId === null).should.equal(true);
 		(loginStore.tokenPropertyName === null).should.equal(true);
-		loginStore.usePrefix.should.equal(false);
 	});
 
 
@@ -76,16 +75,6 @@ describe("loginStore", function() {
 
 		loginStore.setToken.restore();
 
-		sinon.stub(loginStore, 'setToken', function(token) { 
-			token.should.equal('SimpleAuth dummy-token');
-		});
-
-		loginStore.usePrefix = true;
-		loginStore.receiveBasicAuth({headers: {x_auth_token: "dummy-token"}});
-		sinon.assert.calledOnce(loginStore.setToken);
-
-
-		loginStore.setToken.restore();
 	});
 
 	it("Should call removeToken() from receiveBasicAuthFailure() and set an error message from response data", function() {
@@ -158,23 +147,13 @@ describe("loginStore", function() {
 		};
 
 		sinon.stub(loginStore, "setToken", function(token) {
-			token.should.equal("Federated dummy-token");
-		});
-
-		loginStore.usePrefix = true;
-		loginStore.checkTokenInUrl();
-		sinon.assert.calledOnce(loginStore.setToken);
-		loginStore.setToken.restore();
-
-		sinon.stub(loginStore, "setToken", function(token) {
 			token.should.equal("dummy-token");
 		});
 
-		loginStore.usePrefix = false;
 		loginStore.checkTokenInUrl();
 		sinon.assert.calledOnce(loginStore.setToken);
-
 		loginStore.setToken.restore();
+
 
 	});
 

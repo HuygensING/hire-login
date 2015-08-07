@@ -12,17 +12,12 @@ class LoginStore extends EventEmitter {
 		this.userData = null;
 		this.vreId = null;
 		this.tokenPropertyName = null;
-		this.usePrefix = false;
 	}
 
 	initializeVre(vreId) {
 		this.vreId = vreId || "";
 		this.tokenPropertyName = "hi-" + this.vreId.toLowerCase() + "-auth-token";
 		this.checkTokenInUrl();
-	}
-
-	setUsePrefix(usePrefix) {
-		this.usePrefix = usePrefix;
 	}
 
 	checkTokenInUrl() {
@@ -35,7 +30,7 @@ class LoginStore extends EventEmitter {
 				let newLocation = window.location.href
 					.replace(params[i], "")
 					.replace(/[\?\&]$/, "");
-				this.setToken((this.usePrefix ? "Federated " : "") + value);
+				this.setToken(value);
 				history.replaceState(history.state, 'tokened', newLocation);
 				break;
 			}
@@ -75,7 +70,7 @@ class LoginStore extends EventEmitter {
 
 	receiveBasicAuth(data) {
 
-		this.setToken((this.usePrefix ? "SimpleAuth " : "") + data.headers.x_auth_token);
+		this.setToken(data.headers.x_auth_token);
 		this.errorMessage = null;
 
 	}

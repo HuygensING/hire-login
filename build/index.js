@@ -1343,7 +1343,6 @@ var LoginStore = (function (_EventEmitter) {
 		this.userData = null;
 		this.vreId = null;
 		this.tokenPropertyName = null;
-		this.usePrefix = false;
 	}
 
 	_createClass(LoginStore, [{
@@ -1352,11 +1351,6 @@ var LoginStore = (function (_EventEmitter) {
 			this.vreId = vreId || "";
 			this.tokenPropertyName = "hi-" + this.vreId.toLowerCase() + "-auth-token";
 			this.checkTokenInUrl();
-		}
-	}, {
-		key: "setUsePrefix",
-		value: function setUsePrefix(usePrefix) {
-			this.usePrefix = usePrefix;
 		}
 	}, {
 		key: "checkTokenInUrl",
@@ -1374,7 +1368,7 @@ var LoginStore = (function (_EventEmitter) {
 
 				if (key === 'hsid') {
 					var newLocation = window.location.href.replace(params[i], "").replace(/[\?\&]$/, "");
-					this.setToken((this.usePrefix ? "Federated " : "") + value);
+					this.setToken(value);
 					history.replaceState(history.state, 'tokened', newLocation);
 					break;
 				}
@@ -1424,7 +1418,7 @@ var LoginStore = (function (_EventEmitter) {
 		key: "receiveBasicAuth",
 		value: function receiveBasicAuth(data) {
 
-			this.setToken((this.usePrefix ? "SimpleAuth " : "") + data.headers.x_auth_token);
+			this.setToken(data.headers.x_auth_token);
 			this.errorMessage = null;
 		}
 	}, {
@@ -1534,7 +1528,6 @@ var LoginComponent = (function (_React$Component) {
 
 		_get(Object.getPrototypeOf(LoginComponent.prototype), "constructor", this).call(this, props);
 
-		_loginStore2["default"].setUsePrefix(this.props.useTokenPrefix);
 		_loginStore2["default"].initializeVre(this.props.VRE_ID);
 		this.state = _loginStore2["default"].getState();
 		this.state.opened = false;
@@ -1631,7 +1624,6 @@ var LoginComponent = (function (_React$Component) {
 LoginComponent.propTypes = {
 	buttonLabel: _react2["default"].PropTypes.string,
 	loggedInLabel: _react2["default"].PropTypes.string,
-	useTokenPrefix: _react2["default"].PropTypes.bool,
 	VRE_ID: _react2["default"].PropTypes.string.isRequired,
 	userInfoUrl: _react2["default"].PropTypes.string.isRequired,
 	onChange: _react2["default"].PropTypes.func.isRequired
@@ -1641,8 +1633,7 @@ LoginComponent.propTypes = {
 LoginComponent.defaultProps = {
 	buttonLabel: "Login",
 	loggedInLabel: "Logged in as",
-	VRE_ID: null,
-	useTokenPrefix: false
+	VRE_ID: null
 };
 
 exports["default"] = LoginComponent;

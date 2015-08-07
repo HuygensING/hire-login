@@ -9,7 +9,6 @@ class LoginComponent extends React.Component {
 	constructor(props) {
 		super(props);
 
-		loginStore.setUsePrefix(this.props.useTokenPrefix);
 		loginStore.initializeVre(this.props.VRE_ID);
 		this.state = loginStore.getState();
 		this.state.opened = false;
@@ -83,7 +82,6 @@ class LoginComponent extends React.Component {
 LoginComponent.propTypes = {
 	buttonLabel: React.PropTypes.string,
 	loggedInLabel: React.PropTypes.string,
-	useTokenPrefix: React.PropTypes.bool,
 	VRE_ID: React.PropTypes.string.isRequired,
 	userInfoUrl: React.PropTypes.string.isRequired,
 	onChange: React.PropTypes.func.isRequired,
@@ -94,7 +92,6 @@ LoginComponent.defaultProps = {
 	buttonLabel: "Login",
 	loggedInLabel: "Logged in as",
 	VRE_ID: null,
-	useTokenPrefix: false
 };
 
 export default LoginComponent;
