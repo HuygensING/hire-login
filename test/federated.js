@@ -19,14 +19,31 @@ describe("Federated", function() {
 	it("Should render a form into the document with the action set to the url property", function() {
 		window.location = {href: "http://test.me" };
 		let rendered = TestUtils.renderIntoDocument(
-			<Federated url="dummy-url" />
+			<Federated url="dummy-url" label="dummy-label" />
 		);
 
 		let form = TestUtils.findRenderedDOMComponentWithTag(
 			rendered,
 			'form'
 		);
-
+		let submit = TestUtils.findRenderedDOMComponentWithTag(
+			rendered,
+			'button'
+		);
+		let input = TestUtils.findRenderedDOMComponentWithTag(
+			rendered,
+			'input'
+		);
 		form.props.action.should.equal("dummy-url");
+		input.props.name.should.equal("hsurl");
+		input.props.value.should.equal(window.location.href);
+		submit.props.children.should.equal("dummy-label");
+
+	});
+
+	it("Should declare the proper proptypes and set default label", function() {
+		Federated.propTypes.label.should.equal(React.PropTypes.string);
+		Federated.propTypes.url.should.equal(React.PropTypes.string.isRequired);
+		Federated.defaultProps.label.should.equal("Federated Login");
 	});
 });
