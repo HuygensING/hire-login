@@ -22,7 +22,7 @@ describe("loginStore", function() {
 
 		loginStore.setTokenPropertyName("dummy-tpn");
 		sinon.assert.calledOnce(loginStore.checkTokenInUrl);
-		loginStore.tokenPropertyName.should.equal("dummy-tpn");
+		loginStore.tokenPropertyName.should.equal("dummy-tpn-auth-token");
 
 		loginStore.checkTokenInUrl.restore();
 
@@ -31,13 +31,11 @@ describe("loginStore", function() {
 	it("Should expose state properties with getState()", function() {
 		sinon.stub(loginStore, 'getToken', function() { return "dummy-token"; });
 
-		loginStore.tokenPropertyName = "dummy-tpn";
 		loginStore.errorMessage = "dummy-error";
 		loginStore.userData = {};
 
 		let returned = loginStore.getState();
 		returned.token.should.equal("dummy-token");
-		returned.tokenPropertyName.should.equal("dummy-tpn");
 		returned.errorMessage.should.equal("dummy-error");
 		returned.authenticated.should.equal(true);
 		returned.userData.should.be.ok();

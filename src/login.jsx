@@ -12,6 +12,7 @@ class LoginComponent extends React.Component {
 		loginStore.setTokenPropertyName(this.props.appId);
 		this.state = loginStore.getState();
 		this.state.opened = false;
+		this.state.initialized = loginStore.getToken() === null;
 	}
 
 
@@ -23,6 +24,7 @@ class LoginComponent extends React.Component {
 		} else {
 			this.props.onChange(loginStore.getState());
 		}
+		this.setState({initialized: true});
 	}
 
 	toggleLogin(ev) {
@@ -54,6 +56,10 @@ class LoginComponent extends React.Component {
 	}
 
 	render() {
+		if(!this.state.initialized) {
+			return (<div />)
+		} 
+
 		if(this.state.authenticated) {
 			return (
 				<div className="hire-login">
@@ -61,21 +67,20 @@ class LoginComponent extends React.Component {
 					{this.state.userData.displayName}
 				</div>
 			)
-		} else {
-
-			return (
-				<div className="hire-login">
-					<button className={this.state.opened ? 'toggle-opened' : 'toggle-closed'}
-						onClick={this.toggleLogin.bind(this)}>
-						{this.props.buttonLabel}
-					</button>
-					<div style={this.state.opened ? {display: "block"} : {display: "none"}}>
-						{React.Children.map(this.props.children, function(child) { return (<div>{child}</div>); }) }
-						<div className="hire-login-error">{this.state.errorMessage}</div>
-					</div>
-				</div>
-			);
 		}
+		return (
+			<div className="hire-login">
+				<button className={this.state.opened ? 'toggle-opened' : 'toggle-closed'}
+					onClick={this.toggleLogin.bind(this)}>
+					{this.props.buttonLabel}
+				</button>
+				<div style={this.state.opened ? {display: "block"} : {display: "none"}}>
+					{React.Children.map(this.props.children, function(child) { return (<div>{child}</div>); }) }
+					<div className="hire-login-error">{this.state.errorMessage}</div>
+				</div>
+			</div>
+		);
+
 	}
 }
 

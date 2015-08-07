@@ -970,12 +970,12 @@ var _dispatcher2 = _interopRequireDefault(_dispatcher);
 exports["default"] = {
 	receiveBasicLogin: function receiveBasicLogin(err, resp, body) {
 
-		if (resp.statusCode === 401) {
+		if (resp.statusCode >= 400) {
 			_dispatcher2["default"].handleServerAction({
 				actionType: "BASIC_LOGIN_FAILURE",
 				data: resp
 			});
-		} else if (resp.statusCode === 204) {
+		} else if (resp.statusCode >= 200 && resp.statusCode < 300) {
 			_dispatcher2["default"].handleServerAction({
 				actionType: "BASIC_LOGIN_SUCCESS",
 				data: resp
@@ -984,12 +984,12 @@ exports["default"] = {
 	},
 
 	receiveUserData: function receiveUserData(err, resp, body) {
-		if (resp.statusCode === 401) {
+		if (resp.statusCode >= 400) {
 			_dispatcher2["default"].handleServerAction({
 				actionType: "USER_DATA_FAILURE",
 				data: resp
 			});
-		} else if (resp.statusCode === 200) {
+		} else if (resp.statusCode >= 200 && resp.statusCode < 300) {
 			_dispatcher2["default"].handleServerAction({
 				actionType: "USER_DATA_SUCCESS",
 				data: resp
@@ -1346,8 +1346,8 @@ var LoginStore = (function (_EventEmitter) {
 
 	_createClass(LoginStore, [{
 		key: "setTokenPropertyName",
-		value: function setTokenPropertyName(tpn) {
-			this.tokenPropertyName = tpn;
+		value: function setTokenPropertyName(id) {
+			this.tokenPropertyName = id + "-auth-token";
 			this.checkTokenInUrl();
 		}
 	}, {
@@ -1377,7 +1377,6 @@ var LoginStore = (function (_EventEmitter) {
 		value: function getState() {
 			return {
 				token: this.getToken(),
-				tokenPropertyName: this.tokenPropertyName,
 				errorMessage: this.errorMessage,
 				authenticated: this.getToken() !== null && this.userData !== null,
 				userData: this.userData
@@ -1529,6 +1528,7 @@ var LoginComponent = (function (_React$Component) {
 		_loginStore2["default"].setTokenPropertyName(this.props.appId);
 		this.state = _loginStore2["default"].getState();
 		this.state.opened = false;
+		this.state.initialized = _loginStore2["default"].getToken() === null;
 	}
 
 	_createClass(LoginComponent, [{
@@ -1541,6 +1541,7 @@ var LoginComponent = (function (_React$Component) {
 			} else {
 				this.props.onChange(_loginStore2["default"].getState());
 			}
+			this.setState({ initialized: true });
 		}
 	}, {
 		key: "toggleLogin",
@@ -1577,6 +1578,10 @@ var LoginComponent = (function (_React$Component) {
 	}, {
 		key: "render",
 		value: function render() {
+			if (!this.state.initialized) {
+				return _react2["default"].createElement("div", null);
+			}
+
 			if (this.state.authenticated) {
 				return _react2["default"].createElement(
 					"div",
@@ -1584,35 +1589,33 @@ var LoginComponent = (function (_React$Component) {
 					this.props.loggedInLabel ? this.props.loggedInLabel + " " : "",
 					this.state.userData.displayName
 				);
-			} else {
-
-				return _react2["default"].createElement(
+			}
+			return _react2["default"].createElement(
+				"div",
+				{ className: "hire-login" },
+				_react2["default"].createElement(
+					"button",
+					{ className: this.state.opened ? 'toggle-opened' : 'toggle-closed',
+						onClick: this.toggleLogin.bind(this) },
+					this.props.buttonLabel
+				),
+				_react2["default"].createElement(
 					"div",
-					{ className: "hire-login" },
-					_react2["default"].createElement(
-						"button",
-						{ className: this.state.opened ? 'toggle-opened' : 'toggle-closed',
-							onClick: this.toggleLogin.bind(this) },
-						this.props.buttonLabel
-					),
+					{ style: this.state.opened ? { display: "block" } : { display: "none" } },
+					_react2["default"].Children.map(this.props.children, function (child) {
+						return _react2["default"].createElement(
+							"div",
+							null,
+							child
+						);
+					}),
 					_react2["default"].createElement(
 						"div",
-						{ style: this.state.opened ? { display: "block" } : { display: "none" } },
-						_react2["default"].Children.map(this.props.children, function (child) {
-							return _react2["default"].createElement(
-								"div",
-								null,
-								child
-							);
-						}),
-						_react2["default"].createElement(
-							"div",
-							{ className: "hire-login-error" },
-							this.state.errorMessage
-						)
+						{ className: "hire-login-error" },
+						this.state.errorMessage
 					)
-				);
-			}
+				)
+			);
 		}
 	}]);
 

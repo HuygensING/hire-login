@@ -13,8 +13,8 @@ class LoginStore extends EventEmitter {
 		this.tokenPropertyName = null;
 	}
 
-	setTokenPropertyName(tpn) {
-		this.tokenPropertyName = tpn;
+	setTokenPropertyName(id) {
+		this.tokenPropertyName = id + "-auth-token";
 		this.checkTokenInUrl();
 	}
 
@@ -38,7 +38,6 @@ class LoginStore extends EventEmitter {
 	getState() {
 		return {
 			token: this.getToken(),
-			tokenPropertyName: this.tokenPropertyName,
 			errorMessage: this.errorMessage,
 			authenticated: this.getToken() !== null && this.userData !== null,
 			userData: this.userData
