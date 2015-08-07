@@ -3,7 +3,7 @@
 
 
 
-[![Build Status](https://travis-ci.org/HuygensING/hire-login.svg?branch=master)](https://travis-ci.org/Hire-Forms/hire-login)
+[![Build Status](https://travis-ci.org/HuygensING/hire-login.svg?branch=master)](https://travis-ci.org/HuygensING/hire-login)
 
 ```javascript
 import {Login, Federated, Basic} from "hire-login";
