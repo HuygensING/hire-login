@@ -85,12 +85,13 @@ class LoginComponent extends React.Component {
 }
 
 LoginComponent.propTypes = {
-	buttonLabel: React.PropTypes.string,
-	loggedInLabel: React.PropTypes.string,
-	headers: React.PropTypes.object,
-	userUrl: React.PropTypes.string.isRequired,
 	appId: React.PropTypes.string,
+	buttonLabel: React.PropTypes.string,
+	children: React.PropTypes.node,
+	headers: React.PropTypes.object,
+	loggedInLabel: React.PropTypes.string,
 	onChange: React.PropTypes.func.isRequired,
+	userUrl: React.PropTypes.string.isRequired
 
 }
 

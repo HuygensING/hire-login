@@ -14,7 +14,7 @@ class Federated extends React.Component {
 			<form 
 			 	action={this.props.url}
 			 	method="POST">
-			 	<input name="hsurl" value={hsURL} type="hidden" />
+			 	<input name="hsurl"  type="hidden" value={hsURL} />
 			 	<button type="submit">
 			 		{this.props.label}
 			 	</button>
@@ -24,8 +24,8 @@ class Federated extends React.Component {
 }
 
 Federated.propTypes = {
-	url: React.PropTypes.string.isRequired,
-	label: React.PropTypes.string
+	label: React.PropTypes.string,
+	url: React.PropTypes.string.isRequired
 }
 
 Federated.defaultProps = {

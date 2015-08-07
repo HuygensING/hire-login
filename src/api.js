@@ -4,7 +4,6 @@ import serverActions from "./actions";
 
 
 export default {
-	// exposed for mocking
 	performXhr(opts, callback) {
 		xhr(opts, callback);
 	},

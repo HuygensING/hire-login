@@ -1023,7 +1023,6 @@ var _actions = _dereq_("./actions");
 var _actions2 = _interopRequireDefault(_actions);
 
 exports["default"] = {
-	// exposed for mocking
 	performXhr: function performXhr(opts, callback) {
 		(0, _xhr2["default"])(opts, callback);
 	},
@@ -1127,15 +1126,15 @@ var Basic = (function (_React$Component) {
 					this.props.label
 				),
 				_react2["default"].createElement("input", {
-					onKeyDown: this.onKeyDown.bind(this),
 					onChange: this.onUserChange.bind(this),
-					type: "text",
+					onKeyDown: this.onKeyDown.bind(this),
 					placeholder: this.props.userPlaceholder,
+					type: "text",
 					value: this.state.username }),
 				_react2["default"].createElement("input", { onChange: this.onPasswordChange.bind(this),
 					onKeyDown: this.onKeyDown.bind(this),
-					type: "password",
 					placeholder: this.props.passwordPlaceholder,
+					type: "password",
 					value: this.state.password }),
 				_react2["default"].createElement(
 					"button",
@@ -1150,12 +1149,12 @@ var Basic = (function (_React$Component) {
 })(_react2["default"].Component);
 
 Basic.propTypes = {
-	url: _react2["default"].PropTypes.string.isRequired,
 	buttonLabel: _react2["default"].PropTypes.string,
 	label: _react2["default"].PropTypes.string,
-	userPlaceholder: _react2["default"].PropTypes.string,
+	label: _react2["default"].PropTypes.string,
 	passwordPlaceholder: _react2["default"].PropTypes.string,
-	label: _react2["default"].PropTypes.string
+	url: _react2["default"].PropTypes.string.isRequired,
+	userPlaceholder: _react2["default"].PropTypes.string
 };
 
 Basic.defaultProps = {
@@ -1254,7 +1253,7 @@ var Federated = (function (_React$Component) {
 				{
 					action: this.props.url,
 					method: "POST" },
-				_react2["default"].createElement("input", { name: "hsurl", value: hsURL, type: "hidden" }),
+				_react2["default"].createElement("input", { name: "hsurl", type: "hidden", value: hsURL }),
 				_react2["default"].createElement(
 					"button",
 					{ type: "submit" },
@@ -1268,8 +1267,8 @@ var Federated = (function (_React$Component) {
 })(_react2["default"].Component);
 
 Federated.propTypes = {
-	url: _react2["default"].PropTypes.string.isRequired,
-	label: _react2["default"].PropTypes.string
+	label: _react2["default"].PropTypes.string,
+	url: _react2["default"].PropTypes.string.isRequired
 };
 
 Federated.defaultProps = {
@@ -1623,12 +1622,13 @@ var LoginComponent = (function (_React$Component) {
 })(_react2["default"].Component);
 
 LoginComponent.propTypes = {
-	buttonLabel: _react2["default"].PropTypes.string,
-	loggedInLabel: _react2["default"].PropTypes.string,
-	headers: _react2["default"].PropTypes.object,
-	userUrl: _react2["default"].PropTypes.string.isRequired,
 	appId: _react2["default"].PropTypes.string,
-	onChange: _react2["default"].PropTypes.func.isRequired
+	buttonLabel: _react2["default"].PropTypes.string,
+	children: _react2["default"].PropTypes.node,
+	headers: _react2["default"].PropTypes.object,
+	loggedInLabel: _react2["default"].PropTypes.string,
+	onChange: _react2["default"].PropTypes.func.isRequired,
+	userUrl: _react2["default"].PropTypes.string.isRequired
 
 };
 

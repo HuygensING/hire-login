@@ -35,15 +35,15 @@ class Basic extends React.Component {
 			<div>
 				<h3>{this.props.label}</h3>
 				<input
-					onKeyDown={this.onKeyDown.bind(this)}
 					onChange={this.onUserChange.bind(this)}
-					type="text" 
+					onKeyDown={this.onKeyDown.bind(this)}
 					placeholder={this.props.userPlaceholder}  
+					type="text" 
 					value={this.state.username} />
 				<input onChange={this.onPasswordChange.bind(this)}
 					onKeyDown={this.onKeyDown.bind(this)}
-					type="password" 
 					placeholder={this.props.passwordPlaceholder} 
+					type="password" 
 					value={this.state.password} />
 				<button onClick={this.onBasicLoginClick.bind(this)}>{this.props.buttonLabel}</button>
 			</div>
@@ -52,12 +52,12 @@ class Basic extends React.Component {
 }
 
 Basic.propTypes = {
-	url: React.PropTypes.string.isRequired,
 	buttonLabel: React.PropTypes.string,
 	label: React.PropTypes.string,
-	userPlaceholder: React.PropTypes.string,
+	label: React.PropTypes.string,
 	passwordPlaceholder: React.PropTypes.string,
-	label: React.PropTypes.string
+	url: React.PropTypes.string.isRequired,
+	userPlaceholder: React.PropTypes.string
 }
 
 Basic.defaultProps = {
