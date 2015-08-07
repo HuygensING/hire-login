@@ -75,7 +75,6 @@ class LoginStore extends EventEmitter {
 
 	receiveBasicAuth(data) {
 
-		// TODO: find out correct tokenPrefix from apidoc...
 		this.setToken((this.usePrefix ? "SimpleAuth " : "") + data.headers.x_auth_token);
 		this.errorMessage = null;
 

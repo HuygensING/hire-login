@@ -2,6 +2,7 @@ import should from "should";
 import sinon from "sinon";
 
 import loginStore from "../src/login-store";
+import dispatcher from "../src/dispatcher";
 
 global.window = {};
 global.history = {};
@@ -245,4 +246,59 @@ describe("loginStore", function() {
 		loginStore.onMissingTokenPropertyName.restore();
 	});
 
+	it("Should register a callback to the dispatcher to handle server actions", function() {
+		let dispatcherCallback = dispatcher.$Dispatcher_callbacks[loginStore.dispatcherIndex];
+
+		dispatcherCallback.should.be.an.instanceOf(Function);
+	});
+
+	function testDispatcherCallbackFor(opts) {
+		let dispatcherCallback = dispatcher.$Dispatcher_callbacks[loginStore.dispatcherIndex];
+
+		sinon.stub(loginStore, opts.stubFunc, function(data) {
+			data.should.equal("dummy-data");
+		});
+
+		sinon.stub(loginStore, "emit", function(evType) {
+			evType.should.equal("change");
+		});
+
+		dispatcherCallback({
+			action: {
+				data: "dummy-data",
+				actionType: opts.actionType
+			}
+		});
+		sinon.assert.calledOnce(loginStore[opts.stubFunc]);
+		sinon.assert.calledOnce(loginStore.emit);
+
+		loginStore[opts.stubFunc].restore();
+		loginStore.emit.restore();
+	}
+
+	it("Should use the dispatcherCallback to call receiveBasicAuth() and emit a change event", function() {
+		testDispatcherCallbackFor({actionType: "BASIC_LOGIN_SUCCESS", stubFunc: "receiveBasicAuth"});
+	});
+
+	it("Should use the dispatcherCallback to call receiveBasicAuthFailure() and emit a change event", function() {
+		testDispatcherCallbackFor({actionType: "BASIC_LOGIN_FAILURE", stubFunc: "receiveBasicAuthFailure"});
+	});
+
+	it("Should use the dispatcherCallback to call receiveUserData() and emit a change event", function() {
+		testDispatcherCallbackFor({actionType: "USER_DATA_SUCCESS", stubFunc: "receiveUserData"});
+	});
+
+	it("Should use the dispatcherCallback to call receiveUserDataFailure() and emit a change event", function() {
+		testDispatcherCallbackFor({actionType: "USER_DATA_FAILURE", stubFunc: "receiveUserDataFailure"});
+	});
+
+	it("Should not emit a change event with the dispatcherCallback when the actionType is unsupported", function() {
+		let dispatcherCallback = dispatcher.$Dispatcher_callbacks[loginStore.dispatcherIndex];
+		sinon.stub(loginStore, "emit");
+		dispatcherCallback({
+			action: {actionType: "UNSUPPORTED"}
+		});
+		sinon.assert.notCalled(loginStore.emit);
+		loginStore.emit.restore();
+	});
 });
