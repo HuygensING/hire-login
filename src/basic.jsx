@@ -54,7 +54,6 @@ class Basic extends React.Component {
 Basic.propTypes = {
 	buttonLabel: React.PropTypes.string,
 	label: React.PropTypes.string,
-	label: React.PropTypes.string,
 	passwordPlaceholder: React.PropTypes.string,
 	url: React.PropTypes.string.isRequired,
 	userPlaceholder: React.PropTypes.string
