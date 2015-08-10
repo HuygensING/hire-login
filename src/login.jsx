@@ -12,7 +12,9 @@ class LoginComponent extends React.Component {
 		loginStore.setTokenPropertyName(this.props.appId);
 		this.state = loginStore.getState();
 		this.state.opened = false;
-		this.state.initialized = loginStore.getToken() === null;
+		if(!this.state.initialized) {
+			this.state.initialized = loginStore.getToken() === null;
+		}
 	}
 
 

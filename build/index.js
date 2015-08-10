@@ -1526,7 +1526,9 @@ var LoginComponent = (function (_React$Component) {
 		_loginStore2["default"].setTokenPropertyName(this.props.appId);
 		this.state = _loginStore2["default"].getState();
 		this.state.opened = false;
-		this.state.initialized = _loginStore2["default"].getToken() === null;
+		if (!this.state.initialized) {
+			this.state.initialized = _loginStore2["default"].getToken() === null;
+		}
 	}
 
 	_createClass(LoginComponent, [{
