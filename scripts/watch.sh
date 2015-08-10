@@ -15,4 +15,5 @@ node_modules/.bin/watchify src/index.jsx \
   --outfile 'node_modules/.bin/derequire > build/index.js' \
   --standalone HireFormsLogin \
   --transform [ babelify --plugins object-assign ] \
+  -t browserify-css \
   --verbose

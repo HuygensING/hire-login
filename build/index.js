@@ -1,4 +1,58 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.HireFormsLogin = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+var css = ".hire-login {\n  text-align: left;\n}\n.hire-login .login-form {\n  position: absolute;\n  z-index: 10000;\n  background-color: #fff;\n}\n.hire-login input {\n  display: block;\n}\n.hire-login .login-form button {\n  width: 75%;\n}\n.hire-login .login-sub-component {\n  padding: 12px;\n}\n.hire-login .hire-login-error {\n  color: #f00;\n  font-weight: bold;\n}\n"; (_dereq_("browserify-css").createStyle(css, { "href": "build/main.css"})); module.exports = css;
+},{"browserify-css":2}],2:[function(_dereq_,module,exports){
+'use strict';
+// For more information about browser field, check out the browser field at https://github.com/substack/browserify-handbook#browser-field.
+
+module.exports = {
+    // Create a <link> tag with optional data attributes
+    createLink: function(href, attributes) {
+        var head = document.head || document.getElementsByTagName('head')[0];
+        var link = document.createElement('link');
+
+        link.href = href;
+        link.rel = 'stylesheet';
+
+        for (var key in attributes) {
+            if ( ! attributes.hasOwnProperty(key)) {
+                continue;
+            }
+            var value = attributes[key];
+            link.setAttribute('data-' + key, value);
+        }
+
+        head.appendChild(link);
+    },
+    // Create a <style> tag with optional data attributes
+    createStyle: function(cssText, attributes) {
+        var head = document.head || document.getElementsByTagName('head')[0],
+            style = document.createElement('style');
+
+        style.type = 'text/css';
+
+        for (var key in attributes) {
+            if ( ! attributes.hasOwnProperty(key)) {
+                continue;
+            }
+            var value = attributes[key];
+            style.setAttribute('data-' + key, value);
+        }
+        
+        if (style.sheet) { // for jsdom and IE9+
+            style.innerHTML = cssText;
+            style.sheet.cssText = cssText;
+            head.appendChild(style);
+        } else if (style.styleSheet) { // for IE8 and below
+            head.appendChild(style);
+            style.styleSheet.cssText = cssText;
+        } else { // for Chrome, Firefox, and Safari
+            style.appendChild(document.createTextNode(cssText));
+            head.appendChild(style);
+        }
+    }
+};
+
+},{}],3:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -301,7 +355,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],2:[function(_dereq_,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 /**
  * Copyright (c) 2014-2015, Facebook, Inc.
  * All rights reserved.
@@ -313,7 +367,7 @@ function isUndefined(arg) {
 
 module.exports.Dispatcher = _dereq_('./lib/Dispatcher')
 
-},{"./lib/Dispatcher":3}],3:[function(_dereq_,module,exports){
+},{"./lib/Dispatcher":5}],5:[function(_dereq_,module,exports){
 /*
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -565,7 +619,7 @@ var _prefix = 'ID_';
 
 module.exports = Dispatcher;
 
-},{"./invariant":4}],4:[function(_dereq_,module,exports){
+},{"./invariant":6}],6:[function(_dereq_,module,exports){
 /**
  * Copyright (c) 2014, Facebook, Inc.
  * All rights reserved.
@@ -620,7 +674,7 @@ var invariant = function(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 
-},{}],5:[function(_dereq_,module,exports){
+},{}],7:[function(_dereq_,module,exports){
 "use strict";
 var window = _dereq_("global/window")
 var once = _dereq_("once")
@@ -809,7 +863,7 @@ function createXHR(options, callback) {
 
 function noop() {}
 
-},{"global/window":6,"once":7,"parse-headers":11}],6:[function(_dereq_,module,exports){
+},{"global/window":8,"once":9,"parse-headers":13}],8:[function(_dereq_,module,exports){
 if (typeof window !== "undefined") {
     module.exports = window;
 } else if (typeof global !== "undefined") {
@@ -820,7 +874,7 @@ if (typeof window !== "undefined") {
     module.exports = {};
 }
 
-},{}],7:[function(_dereq_,module,exports){
+},{}],9:[function(_dereq_,module,exports){
 module.exports = once
 
 once.proto = once(function () {
@@ -841,7 +895,7 @@ function once (fn) {
   }
 }
 
-},{}],8:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 var isFunction = _dereq_('is-function')
 
 module.exports = forEach
@@ -889,7 +943,7 @@ function forEachObject(object, iterator, context) {
     }
 }
 
-},{"is-function":9}],9:[function(_dereq_,module,exports){
+},{"is-function":11}],11:[function(_dereq_,module,exports){
 module.exports = isFunction
 
 var toString = Object.prototype.toString
@@ -906,7 +960,7 @@ function isFunction (fn) {
       fn === window.prompt))
 };
 
-},{}],10:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 
 exports = module.exports = trim;
 
@@ -922,7 +976,7 @@ exports.right = function(str){
   return str.replace(/\s*$/, '');
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 var trim = _dereq_('trim')
   , forEach = _dereq_('for-each')
   , isArray = function(arg) {
@@ -954,7 +1008,7 @@ module.exports = function (headers) {
 
   return result
 }
-},{"for-each":8,"trim":10}],12:[function(_dereq_,module,exports){
+},{"for-each":10,"trim":12}],14:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1002,7 +1056,7 @@ exports["default"] = {
 };
 module.exports = exports["default"];
 
-},{"./dispatcher":15}],13:[function(_dereq_,module,exports){
+},{"./dispatcher":17}],15:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1053,7 +1107,7 @@ exports["default"] = {
 };
 module.exports = exports["default"];
 
-},{"./actions":12,"./dispatcher":15,"xhr":5}],14:[function(_dereq_,module,exports){
+},{"./actions":14,"./dispatcher":17,"xhr":7}],16:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1162,7 +1216,7 @@ Basic.defaultProps = {
 exports["default"] = Basic;
 module.exports = exports["default"];
 
-},{"./api":13,"./login-store":18,"react":"react"}],15:[function(_dereq_,module,exports){
+},{"./api":15,"./login-store":20,"react":"react"}],17:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1212,7 +1266,7 @@ var LoginDispatcher = (function (_Dispatcher) {
 exports["default"] = new LoginDispatcher();
 module.exports = exports["default"];
 
-},{"flux":2}],16:[function(_dereq_,module,exports){
+},{"flux":4}],18:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1281,7 +1335,7 @@ Federated.defaultProps = {
 exports["default"] = Federated;
 module.exports = exports["default"];
 
-},{"./login-store":18,"react":"react"}],17:[function(_dereq_,module,exports){
+},{"./login-store":20,"react":"react"}],19:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1302,11 +1356,12 @@ var _basic = _dereq_("./basic");
 
 var _basic2 = _interopRequireDefault(_basic);
 
+_dereq_("../build/main.css");
 exports.Login = _login2["default"];
 exports.Federated = _federated2["default"];
 exports.Basic = _basic2["default"];
 
-},{"./basic":14,"./federated":16,"./login":19}],18:[function(_dereq_,module,exports){
+},{"../build/main.css":1,"./basic":16,"./federated":18,"./login":21}],20:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1509,7 +1564,7 @@ loginStore.dispatcherIndex = _dispatcher2["default"].register(dispatcherCallback
 exports["default"] = loginStore;
 module.exports = exports["default"];
 
-},{"./dispatcher":15,"events":1}],19:[function(_dereq_,module,exports){
+},{"./dispatcher":17,"events":3}],21:[function(_dereq_,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1692,5 +1747,5 @@ LoginComponent.defaultProps = {
 exports["default"] = LoginComponent;
 module.exports = exports["default"];
 
-},{"./actions":12,"./api":13,"./federated":16,"./login-store":18,"react":"react"}]},{},[17])(17)
+},{"./actions":14,"./api":15,"./federated":18,"./login-store":20,"react":"react"}]},{},[19])(19)
 });
