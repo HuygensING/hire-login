@@ -32,8 +32,7 @@ class Basic extends React.Component {
 
 	render() {
 		return  (
-			<div>
-				<h3>{this.props.label}</h3>
+			<div className="login-sub-component">
 				<input
 					onChange={this.onUserChange.bind(this)}
 					onKeyDown={this.onKeyDown.bind(this)}
@@ -45,14 +44,13 @@ class Basic extends React.Component {
 					placeholder={this.props.passwordPlaceholder} 
 					type="password" 
 					value={this.state.password} />
-				<button onClick={this.onBasicLoginClick.bind(this)}>{this.props.buttonLabel}</button>
+				<button onClick={this.onBasicLoginClick.bind(this)}>{this.props.label}</button>
 			</div>
 		);
 	}
 }
 
 Basic.propTypes = {
-	buttonLabel: React.PropTypes.string,
 	label: React.PropTypes.string,
 	passwordPlaceholder: React.PropTypes.string,
 	url: React.PropTypes.string.isRequired,
@@ -60,7 +58,6 @@ Basic.propTypes = {
 }
 
 Basic.defaultProps = {
-	buttonLabel: "Login",
 	label: "Basic Login",
 	userPlaceholder: "Username or email address",
 	passwordPlaceholder: "Password"

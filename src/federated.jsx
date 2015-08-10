@@ -11,7 +11,7 @@ class Federated extends React.Component {
 		let hsURL = window.location.href;
 
 		return (
-			<form 
+			<form className="login-sub-component"
 			 	action={this.props.url}
 			 	method="POST">
 			 	<input name="hsurl"  type="hidden" value={hsURL} />

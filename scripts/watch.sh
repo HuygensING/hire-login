@@ -1,5 +1,12 @@
 #!/bin/sh
 
+./node_modules/.bin/stylus \
+	-w \
+	--use nib \
+	--compress \
+	--out build/main.css \
+	src/main.styl &
+
 node_modules/.bin/watchify src/index.jsx \
   --detect-globals false \
   --extension=.jsx \

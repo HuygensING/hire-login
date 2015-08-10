@@ -29,7 +29,9 @@
     "should": "~7.0.2",
     "sinon": "~1.15.4",
     "watchify": "^3.3.0",
-    "xhr": "~2.0.3"
+    "xhr": "~2.0.3",
+    "stylus": "~0.52.0",
+    "nib": "~1.1.0"
   },
   "repository": {
     "type": "git",

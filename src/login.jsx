@@ -76,7 +76,7 @@ class LoginComponent extends React.Component {
 					onClick={this.toggleLogin.bind(this)}>
 					{this.props.buttonLabel}
 				</button>
-				<div style={this.state.opened ? {display: "block"} : {display: "none"}}>
+				<div className="login-form" id="hire-login-form" style={this.state.opened ? {display: "block"} : {display: "none"}}>
 					{React.Children.map(this.props.children, function(child) { return (<div>{child}</div>); }) }
 					<div className="hire-login-error">{this.state.errorMessage}</div>
 				</div>

@@ -1119,12 +1119,7 @@ var Basic = (function (_React$Component) {
 		value: function render() {
 			return _react2["default"].createElement(
 				"div",
-				null,
-				_react2["default"].createElement(
-					"h3",
-					null,
-					this.props.label
-				),
+				{ className: "login-sub-component" },
 				_react2["default"].createElement("input", {
 					onChange: this.onUserChange.bind(this),
 					onKeyDown: this.onKeyDown.bind(this),
@@ -1139,7 +1134,7 @@ var Basic = (function (_React$Component) {
 				_react2["default"].createElement(
 					"button",
 					{ onClick: this.onBasicLoginClick.bind(this) },
-					this.props.buttonLabel
+					this.props.label
 				)
 			);
 		}
@@ -1149,7 +1144,6 @@ var Basic = (function (_React$Component) {
 })(_react2["default"].Component);
 
 Basic.propTypes = {
-	buttonLabel: _react2["default"].PropTypes.string,
 	label: _react2["default"].PropTypes.string,
 	passwordPlaceholder: _react2["default"].PropTypes.string,
 	url: _react2["default"].PropTypes.string.isRequired,
@@ -1157,7 +1151,6 @@ Basic.propTypes = {
 };
 
 Basic.defaultProps = {
-	buttonLabel: "Login",
 	label: "Basic Login",
 	userPlaceholder: "Username or email address",
 	passwordPlaceholder: "Password"
@@ -1249,7 +1242,7 @@ var Federated = (function (_React$Component) {
 
 			return _react2["default"].createElement(
 				"form",
-				{
+				{ className: "login-sub-component",
 					action: this.props.url,
 					method: "POST" },
 				_react2["default"].createElement("input", { name: "hsurl", type: "hidden", value: hsURL }),
@@ -1601,7 +1594,7 @@ var LoginComponent = (function (_React$Component) {
 				),
 				_react2["default"].createElement(
 					"div",
-					{ style: this.state.opened ? { display: "block" } : { display: "none" } },
+					{ className: "login-form", id: "hire-login-form", style: this.state.opened ? { display: "block" } : { display: "none" } },
 					_react2["default"].Children.map(this.props.children, function (child) {
 						return _react2["default"].createElement(
 							"div",
