@@ -183,6 +183,7 @@ describe("loginStore", function() {
 		loginStore.setToken("");
 		sinon.assert.calledOnce(loginStore.onMissingTokenPropertyName);
 
+		delete(localStorage.setItem);
 		loginStore.onMissingTokenPropertyName.restore();
 	});
 
@@ -202,6 +203,7 @@ describe("loginStore", function() {
 		loginStore.getToken();
 		sinon.assert.calledOnce(loginStore.onMissingTokenPropertyName);
 
+		delete(localStorage.getItem)
 		loginStore.onMissingTokenPropertyName.restore();
 	});
 
@@ -219,6 +221,7 @@ describe("loginStore", function() {
 		loginStore.removeToken();
 		sinon.assert.calledOnce(loginStore.onMissingTokenPropertyName);
 
+		delete(localStorage.removeItem);
 		loginStore.onMissingTokenPropertyName.restore();
 	});
 

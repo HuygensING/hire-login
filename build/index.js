@@ -1151,7 +1151,6 @@ var Basic = (function (_React$Component) {
 Basic.propTypes = {
 	buttonLabel: _react2["default"].PropTypes.string,
 	label: _react2["default"].PropTypes.string,
-	label: _react2["default"].PropTypes.string,
 	passwordPlaceholder: _react2["default"].PropTypes.string,
 	url: _react2["default"].PropTypes.string.isRequired,
 	userPlaceholder: _react2["default"].PropTypes.string
