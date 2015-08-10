@@ -13,7 +13,7 @@ describe("Basic", function() {
 
 	function renderToDoc() {
 		let rendered = TestUtils.renderIntoDocument(
-			<Basic url="dummy-url" label="button-label" passwordPlaceholder="pph" userPlaceholder="uph" />
+			<Basic  label="button-label" passwordPlaceholder="pph" url="dummy-url" userPlaceholder="uph" />
 		);
 
 		let inputs = TestUtils.scryRenderedDOMComponentsWithTag(

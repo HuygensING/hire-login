@@ -29,6 +29,7 @@ class LoginStore extends EventEmitter {
 					.replace(params[i], "")
 					.replace(/[\?\&]$/, "");
 				this.setToken(value);
+				this.setSupportLogout(false);
 				history.replaceState(history.state, 'tokened', newLocation);
 				break;
 			}
@@ -40,7 +41,8 @@ class LoginStore extends EventEmitter {
 			token: this.getToken(),
 			errorMessage: this.errorMessage,
 			authenticated: this.getToken() !== null && this.userData !== null,
-			userData: this.userData
+			userData: this.userData,
+			supportLogout: this.supportsLogout()
 		};
 	}
 
@@ -54,11 +56,22 @@ class LoginStore extends EventEmitter {
 		localStorage.setItem(this.tokenPropertyName, token);
 	}
 
+	setSupportLogout(supportsLogout) {
+		if(supportsLogout) {
+			localStorage.setItem("hi-support-auth-logout", "yes");
+		} else {
+			localStorage.removeItem("hi-support-auth-logout");
+		}
+	}
+
+	supportsLogout() {
+		return localStorage.getItem("hi-support-auth-logout") === "yes";
+	}
+
 	getToken() {
 		if(this.tokenPropertyName === null) { return this.onMissingTokenPropertyName() }
 		return localStorage.getItem(this.tokenPropertyName);
 	}
-
 
 	removeToken() {
 		if(this.tokenPropertyName === null) { return this.onMissingTokenPropertyName() }
@@ -67,7 +80,7 @@ class LoginStore extends EventEmitter {
 
 
 	receiveBasicAuth(data) {
-
+		this.setSupportLogout(true);
 		this.setToken(data.headers.x_auth_token);
 		this.errorMessage = null;
 
@@ -86,6 +99,13 @@ class LoginStore extends EventEmitter {
 	receiveUserDataFailure(data) {
 		this.removeToken();
 		this.errorMessage = "Unauthorized";
+	}
+
+	receiveLogout() {
+		this.removeToken();
+		this.setSupportLogout(false);
+		this.errorMessage = null;
+		this.userData = null;
 	}
 
 	stopListening(callback) { this.removeListener(CHANGE_EVENT, callback); }
@@ -107,6 +127,9 @@ let dispatcherCallback = function(payload) {
 			break;
 		case "USER_DATA_FAILURE":
 			loginStore.receiveUserDataFailure(payload.action.data);
+			break;
+		case "LOGOUT":
+			loginStore.receiveLogout(payload.action.data);
 			break;
 
 		default:

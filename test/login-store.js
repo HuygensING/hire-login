@@ -30,6 +30,7 @@ describe("loginStore", function() {
 
 	it("Should expose state properties with getState()", function() {
 		sinon.stub(loginStore, 'getToken', function() { return "dummy-token"; });
+		sinon.stub(loginStore, 'supportsLogout', function() { return true; });
 
 		loginStore.errorMessage = "dummy-error";
 		loginStore.userData = {};
@@ -41,12 +42,15 @@ describe("loginStore", function() {
 		returned.userData.should.be.ok();
 
 		sinon.assert.calledTwice(loginStore.getToken);
+		sinon.assert.calledOnce(loginStore.supportsLogout);
+
 
 		loginStore.userData = null;
 		returned = loginStore.getState();
 		returned.authenticated.should.equal(false);
 
 		loginStore.getToken.restore();
+		loginStore.supportsLogout.restore();
 	});
 
 	it("Should fire a warning to the console with onMissingTokenPropertyName()", function() {
@@ -64,14 +68,18 @@ describe("loginStore", function() {
 		sinon.stub(loginStore, 'setToken', function(token) { 
 			token.should.equal('dummy-token');
 		});
+		sinon.stub(loginStore, 'setSupportLogout', function(supportsLogout) {
+			supportsLogout.should.equal(true);
+		});
 
 		loginStore.errorMessage = "remove me";
 		loginStore.receiveBasicAuth({headers: {x_auth_token: "dummy-token"}});
 		(loginStore.errorMessage === null).should.equal(true);
 		sinon.assert.calledOnce(loginStore.setToken);
+		sinon.assert.calledOnce(loginStore.setSupportLogout);
 
 		loginStore.setToken.restore();
-
+		loginStore.setSupportLogout.restore();
 	});
 
 	it("Should call removeToken() from receiveBasicAuthFailure() and set an error message from response data", function() {
@@ -136,6 +144,9 @@ describe("loginStore", function() {
 			search: "?foo=bar&hsid=dummy-token",
 			href: "http://domain.name/path?foo=bar&hsid=dummy-token"
 		};
+		sinon.stub(loginStore, 'setSupportLogout', function(supportsLogout) {
+			supportsLogout.should.equal(false);
+		});
 
 		history.state = {originalState: "dummy-state"};
 		history.replaceState = function(state, name, loc) {
@@ -149,9 +160,11 @@ describe("loginStore", function() {
 
 		loginStore.checkTokenInUrl();
 		sinon.assert.calledOnce(loginStore.setToken);
+		sinon.assert.calledOnce(loginStore.setSupportLogout);
+
+
 		loginStore.setToken.restore();
-
-
+		loginStore.setSupportLogout.restore();
 	});
 
 	it("Should not set a Federated token without hsid param in the url with checkTokenInUrl()", function() {
@@ -270,6 +283,11 @@ describe("loginStore", function() {
 	it("Should use the dispatcherCallback to call receiveUserDataFailure() and emit a change event", function() {
 		testDispatcherCallbackFor({actionType: "USER_DATA_FAILURE", stubFunc: "receiveUserDataFailure"});
 	});
+
+	it("Should use the dispatcherCallback to call receiveLogout() and emit a change event", function() {
+		testDispatcherCallbackFor({actionType: "LOGOUT", stubFunc: "receiveLogout"});
+	});
+
 
 	it("Should not emit a change event with the dispatcherCallback when the actionType is unsupported", function() {
 		let dispatcherCallback = dispatcher.$Dispatcher_callbacks[loginStore.dispatcherIndex];

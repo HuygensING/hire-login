@@ -1,8 +1,11 @@
 import dispatcher from "./dispatcher";
 
 export default {
-	receiveBasicLogin(err, resp, body) {
+	logout() {
+		dispatcher.handleViewAction({actionType: "LOGOUT"});
+	},
 
+	receiveBasicLogin(err, resp, body) {
 		if(resp.statusCode >= 400) {
 			dispatcher.handleServerAction({
 				actionType: "BASIC_LOGIN_FAILURE",
@@ -14,7 +17,6 @@ export default {
 				data: resp
 			});
 		}
-
 	},
 
 	receiveUserData(err, resp, body) {

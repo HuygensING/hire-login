@@ -9,6 +9,13 @@ class LoginDispatcher extends Dispatcher {
 			action: action
 		});
 	}
+
+	handleViewAction(action) {
+		return this.dispatch({
+			source: "VIEW_ACTION",
+			action: action
+		});	
+	}
 }
 
 export default new LoginDispatcher();

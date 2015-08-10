@@ -968,8 +968,11 @@ var _dispatcher = _dereq_("./dispatcher");
 var _dispatcher2 = _interopRequireDefault(_dispatcher);
 
 exports["default"] = {
-	receiveBasicLogin: function receiveBasicLogin(err, resp, body) {
+	logout: function logout() {
+		_dispatcher2["default"].handleViewAction({ actionType: "LOGOUT" });
+	},
 
+	receiveBasicLogin: function receiveBasicLogin(err, resp, body) {
 		if (resp.statusCode >= 400) {
 			_dispatcher2["default"].handleServerAction({
 				actionType: "BASIC_LOGIN_FAILURE",
@@ -1193,6 +1196,14 @@ var LoginDispatcher = (function (_Dispatcher) {
 				action: action
 			});
 		}
+	}, {
+		key: "handleViewAction",
+		value: function handleViewAction(action) {
+			return this.dispatch({
+				source: "VIEW_ACTION",
+				action: action
+			});
+		}
 	}]);
 
 	return LoginDispatcher;
@@ -1358,6 +1369,7 @@ var LoginStore = (function (_EventEmitter) {
 				if (key === 'hsid') {
 					var newLocation = window.location.href.replace(params[i], "").replace(/[\?\&]$/, "");
 					this.setToken(value);
+					this.setSupportLogout(false);
 					history.replaceState(history.state, 'tokened', newLocation);
 					break;
 				}
@@ -1370,7 +1382,8 @@ var LoginStore = (function (_EventEmitter) {
 				token: this.getToken(),
 				errorMessage: this.errorMessage,
 				authenticated: this.getToken() !== null && this.userData !== null,
-				userData: this.userData
+				userData: this.userData,
+				supportLogout: this.supportsLogout()
 			};
 		}
 	}, {
@@ -1385,6 +1398,20 @@ var LoginStore = (function (_EventEmitter) {
 				return this.onMissingTokenPropertyName();
 			}
 			localStorage.setItem(this.tokenPropertyName, token);
+		}
+	}, {
+		key: "setSupportLogout",
+		value: function setSupportLogout(supportsLogout) {
+			if (supportsLogout) {
+				localStorage.setItem("hi-support-auth-logout", "yes");
+			} else {
+				localStorage.removeItem("hi-support-auth-logout");
+			}
+		}
+	}, {
+		key: "supportsLogout",
+		value: function supportsLogout() {
+			return localStorage.getItem("hi-support-auth-logout") === "yes";
 		}
 	}, {
 		key: "getToken",
@@ -1405,7 +1432,7 @@ var LoginStore = (function (_EventEmitter) {
 	}, {
 		key: "receiveBasicAuth",
 		value: function receiveBasicAuth(data) {
-
+			this.setSupportLogout(true);
 			this.setToken(data.headers.x_auth_token);
 			this.errorMessage = null;
 		}
@@ -1426,6 +1453,14 @@ var LoginStore = (function (_EventEmitter) {
 		value: function receiveUserDataFailure(data) {
 			this.removeToken();
 			this.errorMessage = "Unauthorized";
+		}
+	}, {
+		key: "receiveLogout",
+		value: function receiveLogout() {
+			this.removeToken();
+			this.setSupportLogout(false);
+			this.errorMessage = null;
+			this.userData = null;
 		}
 	}, {
 		key: "stopListening",
@@ -1457,6 +1492,9 @@ var dispatcherCallback = function dispatcherCallback(payload) {
 			break;
 		case "USER_DATA_FAILURE":
 			loginStore.receiveUserDataFailure(payload.action.data);
+			break;
+		case "LOGOUT":
+			loginStore.receiveLogout(payload.action.data);
 			break;
 
 		default:
@@ -1496,10 +1534,6 @@ var _loginStore = _dereq_("./login-store");
 
 var _loginStore2 = _interopRequireDefault(_loginStore);
 
-var _dispatcher = _dereq_("./dispatcher");
-
-var _dispatcher2 = _interopRequireDefault(_dispatcher);
-
 var _federated = _dereq_("./federated");
 
 var _federated2 = _interopRequireDefault(_federated);
@@ -1507,6 +1541,10 @@ var _federated2 = _interopRequireDefault(_federated);
 var _api = _dereq_("./api");
 
 var _api2 = _interopRequireDefault(_api);
+
+var _actions = _dereq_("./actions");
+
+var _actions2 = _interopRequireDefault(_actions);
 
 var LoginComponent = (function (_React$Component) {
 	_inherits(LoginComponent, _React$Component);
@@ -1525,23 +1563,6 @@ var LoginComponent = (function (_React$Component) {
 	}
 
 	_createClass(LoginComponent, [{
-		key: "onStoreChange",
-		value: function onStoreChange() {
-			this.setState(_loginStore2["default"].getState());
-
-			if (this.state.token != null && !this.state.authenticated) {
-				_api2["default"].fetchUserData(this.props.userUrl, this.state.token, this.props.headers);
-			} else {
-				this.props.onChange(_loginStore2["default"].getState());
-			}
-			this.setState({ initialized: true });
-		}
-	}, {
-		key: "toggleLogin",
-		value: function toggleLogin(ev) {
-			this.setState({ opened: !this.state.opened });
-		}
-	}, {
 		key: "componentDidMount",
 		value: function componentDidMount() {
 			_loginStore2["default"].listen(this.onStoreChange.bind(this));
@@ -1560,6 +1581,28 @@ var LoginComponent = (function (_React$Component) {
 			document.removeEventListener("click", this.handleDocumentClick.bind(this), false);
 		}
 	}, {
+		key: "onStoreChange",
+		value: function onStoreChange() {
+			this.setState(_loginStore2["default"].getState());
+
+			if (this.state.token != null && !this.state.authenticated) {
+				_api2["default"].fetchUserData(this.props.userUrl, this.state.token, this.props.headers);
+			} else {
+				this.props.onChange(_loginStore2["default"].getState());
+			}
+			this.setState({ initialized: true });
+		}
+	}, {
+		key: "toggleLogin",
+		value: function toggleLogin(ev) {
+			this.setState({ opened: !this.state.opened });
+		}
+	}, {
+		key: "onLogoutClick",
+		value: function onLogoutClick(ev) {
+			_actions2["default"].logout();
+		}
+	}, {
 		key: "handleDocumentClick",
 		value: function handleDocumentClick(ev) {
 			if (this.state.opened && !_react2["default"].findDOMNode(this).contains(ev.target)) {
@@ -1576,11 +1619,22 @@ var LoginComponent = (function (_React$Component) {
 			}
 
 			if (this.state.authenticated) {
+				var logoutButton = this.state.supportLogout ? _react2["default"].createElement(
+					"button",
+					{ onClick: this.onLogoutClick.bind(this) },
+					this.props.logoutLabel
+				) : null;
+
 				return _react2["default"].createElement(
 					"div",
 					{ className: "hire-login" },
-					this.props.loggedInLabel ? this.props.loggedInLabel + " " : "",
-					this.state.userData.displayName
+					_react2["default"].createElement(
+						"span",
+						{ className: "login-status" },
+						this.props.loggedInLabel ? this.props.loggedInLabel + " " : "",
+						this.state.userData.displayName
+					),
+					logoutButton
 				);
 			}
 			return _react2["default"].createElement(
@@ -1621,6 +1675,7 @@ LoginComponent.propTypes = {
 	children: _react2["default"].PropTypes.node,
 	headers: _react2["default"].PropTypes.object,
 	loggedInLabel: _react2["default"].PropTypes.string,
+	logoutLabel: _react2["default"].PropTypes.string,
 	onChange: _react2["default"].PropTypes.func.isRequired,
 	userUrl: _react2["default"].PropTypes.string.isRequired
 
@@ -1629,6 +1684,7 @@ LoginComponent.propTypes = {
 LoginComponent.defaultProps = {
 	buttonLabel: "Login",
 	loggedInLabel: "Logged in as",
+	logoutLabel: "Logout",
 	appId: "default-login",
 	headers: {}
 };
@@ -1636,5 +1692,5 @@ LoginComponent.defaultProps = {
 exports["default"] = LoginComponent;
 module.exports = exports["default"];
 
-},{"./api":13,"./dispatcher":15,"./federated":16,"./login-store":18,"react":"react"}]},{},[17])(17)
+},{"./actions":12,"./api":13,"./federated":16,"./login-store":18,"react":"react"}]},{},[17])(17)
 });

@@ -15,4 +15,16 @@ describe("dispatcher", function() {
 		sinon.assert.calledOnce(dispatcher.dispatch);
 		dispatcher.dispatch.restore();
 	});
+
+	it("Should use handleViewAction to dispatch its payload with dispatch", function() {
+
+		sinon.stub(dispatcher, 'dispatch', function(opts) {
+			opts.source.should.equal("VIEW_ACTION");
+			opts.action.should.equal("dummy-action");
+		});
+
+		dispatcher.handleViewAction("dummy-action");
+		sinon.assert.calledOnce(dispatcher.dispatch);
+		dispatcher.dispatch.restore();
+	});
 });

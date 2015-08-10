@@ -94,7 +94,7 @@ describe("Login", function() {
 
 		let div = TestUtils.findRenderedDOMComponentWithClass(
 			rendered,
-			'hire-login'
+			'login-status'
 		);
 		div.props.children[0].should.equal('Logged in as ');
 		div.props.children[1].should.equal('dummy-display-name');

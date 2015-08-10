@@ -47,4 +47,12 @@ describe("serverActions", function() {
 		dispatcher.handleServerAction.restore();
 	});
 
+	it("Should use logout() to dispatch logout signal to dispatcher.handleViewAction", function() {
+		sinon.stub(dispatcher, 'handleViewAction', function(data) {
+			data.actionType.should.equal("LOGOUT");
+		});
+		serverActions.logout();
+		sinon.assert.calledOnce(dispatcher.handleViewAction);
+		dispatcher.handleViewAction.restore();
+	})
 });
