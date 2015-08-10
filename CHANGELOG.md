@@ -1,3 +1,6 @@
+### v2.2.0	(2015/8/10 13:54)
+* added logout button for basic auth
+
 ### v2.1.0	(2015/8/10 12:41)
 * added styling
 * added tests for login.jsx
