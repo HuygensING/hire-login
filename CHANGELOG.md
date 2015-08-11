@@ -1,3 +1,6 @@
+### v2.3.1	(2015/8/11 8:48)
+* replaced browserify-css with insert-css
+
 ### v2.3.0	(2015/8/10 15:37)
 * shipped css
 
