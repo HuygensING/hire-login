@@ -1059,6 +1059,7 @@ exports["default"] = {
 			method: 'POST',
 			uri: url,
 			headers: {
+				Accept: "application/json",
 				Authorization: 'Basic ' + btoa(username + ':' + password)
 			}
 		}, _actions2["default"].receiveBasicLogin);
@@ -1066,7 +1067,10 @@ exports["default"] = {
 
 	fetchUserData: function fetchUserData(url, token, optHeaders) {
 		var headers = optHeaders || {};
-		_extends(headers, { Authorization: token });
+		_extends(headers, {
+			Accept: "application/json",
+			Authorization: token
+		});
 
 		this.performXhr({
 			method: 'GET',

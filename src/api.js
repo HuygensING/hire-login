@@ -13,6 +13,7 @@ export default {
 			method: 'POST',
 			uri: url,
 			headers: {
+				Accept: "application/json",
 				Authorization: 'Basic ' + btoa(username + ':' + password)
 			}
 		},	serverActions.receiveBasicLogin);
@@ -20,7 +21,10 @@ export default {
 
 	fetchUserData(url, token, optHeaders) {
 		let headers = optHeaders || {};
-		Object.assign(headers, {Authorization: token})
+		Object.assign(headers, {
+			Accept: "application/json",
+			Authorization: token
+		})
 
 		this.performXhr({
 			method: 'GET',
