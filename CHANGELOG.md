@@ -1,3 +1,6 @@
+### v2.3.2	(2015/9/2 12:52)
+* Add Accept: application/json header
+
 ### v2.3.1	(2015/8/11 8:48)
 * replaced browserify-css with insert-css
 
