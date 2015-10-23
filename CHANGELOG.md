@@ -1,3 +1,6 @@
+### v2.4.0	(2015/10/23 11:28)
+* Add token prefix prop
+
 ### v2.3.2	(2015/9/2 12:52)
 * Add Accept: application/json header
 
