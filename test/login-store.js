@@ -54,7 +54,7 @@ describe("loginStore", function() {
 	});
 
 	it("Should fire a warning to the console with onMissingTokenPropertyName()", function() {
-		sinon.stub(console, 'warn', function(msg) { 
+		sinon.stub(console, 'warn', function(msg) {
 			msg.should.equal("WARNING: missing tokenPropertyName, call initializeVre before attempting authentication");
 		});
 
@@ -65,7 +65,7 @@ describe("loginStore", function() {
 	});
 
 	it("Should call setToken() correctly with receiveBasicAuth() and assign null to errorMessage", function() {
-		sinon.stub(loginStore, 'setToken', function(token) { 
+		sinon.stub(loginStore, 'setToken', function(token) {
 			token.should.equal('dummy-token');
 		});
 		sinon.stub(loginStore, 'setSupportLogout', function(supportsLogout) {
@@ -198,6 +198,19 @@ describe("loginStore", function() {
 
 		delete(localStorage.setItem);
 		loginStore.onMissingTokenPropertyName.restore();
+	});
+
+	it("Should add token prefix to token", function() {
+		localStorage.setItem = function(key, val) {
+			key.should.equal(loginStore.tokenPropertyName);
+			val.should.equal("my-prefix dummy-token");
+		};
+
+		loginStore.tokenPrefix = "my-prefix ";
+		loginStore.tokenPropertyName = "dummy-name";
+		loginStore.setToken("dummy-token");
+
+		delete(localStorage.setItem);
 	});
 
 	it("Should return the token from the localStorage with getToken() or fire a warning when tokenPropertyName is null", function() {

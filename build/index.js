@@ -1381,9 +1381,15 @@ var LoginStore = (function (_EventEmitter) {
 		this.errorMessage = null;
 		this.userData = null;
 		this.tokenPropertyName = null;
+		this.tokenPrefix = null;
 	}
 
 	_createClass(LoginStore, [{
+		key: "setTokenPrefix",
+		value: function setTokenPrefix(prefix) {
+			this.tokenPrefix = prefix;
+		}
+	}, {
 		key: "setTokenPropertyName",
 		value: function setTokenPropertyName(id) {
 			this.tokenPropertyName = id + "-auth-token";
@@ -1423,6 +1429,9 @@ var LoginStore = (function (_EventEmitter) {
 				supportLogout: this.supportsLogout()
 			};
 		}
+
+		// GB: Is a warning enough? What happens when tokenPropertyName is missing?
+		// GB: "call initializeVre" is Timbuctoo specific whereas hire-login should be generic.
 	}, {
 		key: "onMissingTokenPropertyName",
 		value: function onMissingTokenPropertyName() {
@@ -1434,6 +1443,11 @@ var LoginStore = (function (_EventEmitter) {
 			if (this.tokenPropertyName === null) {
 				return this.onMissingTokenPropertyName();
 			}
+
+			if (this.tokenPrefix != null) {
+				token = "" + this.tokenPrefix + token;
+			}
+
 			localStorage.setItem(this.tokenPropertyName, token);
 		}
 	}, {
@@ -1591,9 +1605,12 @@ var LoginComponent = (function (_React$Component) {
 
 		_get(Object.getPrototypeOf(LoginComponent.prototype), "constructor", this).call(this, props);
 
+		_loginStore2["default"].setTokenPrefix(this.props.tokenPrefix);
 		_loginStore2["default"].setTokenPropertyName(this.props.appId);
+
 		this.state = _loginStore2["default"].getState();
 		this.state.opened = false;
+
 		if (!this.state.initialized) {
 			this.state.initialized = _loginStore2["default"].getToken() === null;
 		}
@@ -1674,6 +1691,7 @@ var LoginComponent = (function (_React$Component) {
 					logoutButton
 				);
 			}
+
 			return _react2["default"].createElement(
 				"div",
 				{ className: "hire-login" },
@@ -1713,9 +1731,9 @@ LoginComponent.propTypes = {
 	headers: _react2["default"].PropTypes.object,
 	loggedInLabel: _react2["default"].PropTypes.string,
 	logoutLabel: _react2["default"].PropTypes.string,
+	tokenPrefix: _react2["default"].PropTypes.string,
 	onChange: _react2["default"].PropTypes.func.isRequired,
 	userUrl: _react2["default"].PropTypes.string.isRequired
-
 };
 
 LoginComponent.defaultProps = {
@@ -1728,6 +1746,7 @@ LoginComponent.defaultProps = {
 
 exports["default"] = LoginComponent;
 module.exports = exports["default"];
+/* GB: Why are children wrapped in a div? Could this.props.children just be passed as is? */
 
 },{"./actions":13,"./api":14,"./federated":17,"./login-store":19,"react":"react"}]},{},[18])(18)
 });

@@ -9,9 +9,12 @@ class LoginComponent extends React.Component {
 	constructor(props) {
 		super(props);
 
+		loginStore.setTokenPrefix(this.props.tokenPrefix);
 		loginStore.setTokenPropertyName(this.props.appId);
+
 		this.state = loginStore.getState();
 		this.state.opened = false;
+
 		if(!this.state.initialized) {
 			this.state.initialized = loginStore.getToken() === null;
 		}
@@ -21,7 +24,7 @@ class LoginComponent extends React.Component {
 		loginStore.listen(this.onStoreChange.bind(this));
 
 		if(this.state.token != null) {
-			api.fetchUserData(this.props.userUrl, this.state.token, this.props.headers);			
+			api.fetchUserData(this.props.userUrl, this.state.token, this.props.headers);
 		}
 
 		document.addEventListener("click", this.handleDocumentClick.bind(this), false);
@@ -63,11 +66,11 @@ class LoginComponent extends React.Component {
 	render() {
 		if(!this.state.initialized) {
 			return (<div />);
-		} 
+		}
 
 		if(this.state.authenticated) {
-			let logoutButton = this.state.supportLogout ? 
-				(<button onClick={this.onLogoutClick.bind(this)} >{this.props.logoutLabel}</button>) : 
+			let logoutButton = this.state.supportLogout ?
+				(<button onClick={this.onLogoutClick.bind(this)} >{this.props.logoutLabel}</button>) :
 				null;
 
 			return (
@@ -80,6 +83,7 @@ class LoginComponent extends React.Component {
 				</div>
 			);
 		}
+
 		return (
 			<div className="hire-login">
 				<button className={this.state.opened ? 'toggle-opened' : 'toggle-closed'}
@@ -87,6 +91,7 @@ class LoginComponent extends React.Component {
 					{this.props.buttonLabel}
 				</button>
 				<div className="login-form" id="hire-login-form" style={this.state.opened ? {display: "block"} : {display: "none"}}>
+					{/* GB: Why are children wrapped in a div? Could this.props.children just be passed as is? */}
 					{React.Children.map(this.props.children, function(child) { return (<div>{child}</div>); }) }
 					<div className="hire-login-error">{this.state.errorMessage}</div>
 				</div>
@@ -103,9 +108,9 @@ LoginComponent.propTypes = {
 	headers: React.PropTypes.object,
 	loggedInLabel: React.PropTypes.string,
 	logoutLabel: React.PropTypes.string,
+	tokenPrefix: React.PropTypes.string,
 	onChange: React.PropTypes.func.isRequired,
 	userUrl: React.PropTypes.string.isRequired
-
 }
 
 LoginComponent.defaultProps = {

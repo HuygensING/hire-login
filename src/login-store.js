@@ -11,6 +11,11 @@ class LoginStore extends EventEmitter {
 		this.errorMessage = null;
 		this.userData = null;
 		this.tokenPropertyName = null;
+		this.tokenPrefix = null;
+	}
+
+	setTokenPrefix(prefix) {
+		this.tokenPrefix = prefix;
 	}
 
 	setTokenPropertyName(id) {
@@ -46,18 +51,26 @@ class LoginStore extends EventEmitter {
 		};
 	}
 
-
+	// GB: Is a warning enough? What happens when tokenPropertyName is missing?
+	// GB: "call initializeVre" is Timbuctoo specific whereas hire-login should be generic.
 	onMissingTokenPropertyName() {
 		console.warn("WARNING: missing tokenPropertyName, call initializeVre before attempting authentication");
 	}
 
 	setToken(token) {
-		if(this.tokenPropertyName === null) { return this.onMissingTokenPropertyName() }
+		if (this.tokenPropertyName === null) {
+			return this.onMissingTokenPropertyName();
+		}
+
+		if (this.tokenPrefix != null) {
+			token = `${this.tokenPrefix}${token}`;
+		}
+
 		localStorage.setItem(this.tokenPropertyName, token);
 	}
 
 	setSupportLogout(supportsLogout) {
-		if(supportsLogout) {
+		if (supportsLogout) {
 			localStorage.setItem("hi-support-auth-logout", "yes");
 		} else {
 			localStorage.removeItem("hi-support-auth-logout");
