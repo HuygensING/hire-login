@@ -12,6 +12,7 @@ node_modules/.bin/watchify src/index.jsx \
   --extension=.jsx \
   --external classnames \
   --external react \
+  --external react-dom \
   --outfile 'node_modules/.bin/derequire > build/index.js' \
   --standalone HireFormsLogin \
   --transform [ babelify --plugins object-assign ] \

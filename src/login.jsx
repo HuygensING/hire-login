@@ -1,4 +1,5 @@
 import React from "react";
+import ReactDOM from "react-dom";
 import loginStore from "./login-store";
 import Federated from "./federated";
 import api from "./api";
@@ -56,7 +57,7 @@ class LoginComponent extends React.Component {
 	}
 
 	handleDocumentClick(ev) {
-		if (this.state.opened && !React.findDOMNode(this).contains(ev.target)) {
+		if (this.state.opened && !ReactDOM.findDOMNode(this).contains(ev.target)) {
 			this.setState({
 				opened: false
 			});
