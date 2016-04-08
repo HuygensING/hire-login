@@ -106,7 +106,11 @@ class LoginStore extends EventEmitter {
 	}
 
 	receiveUserData(data) {
-		this.userData = JSON.parse(data.body);
+		data = JSON.parse(data.body);
+		if (!data.hasOwnProperty("displayName")) {
+			data.displayName = data.firstName;
+		}
+		this.userData = data;
 	}
 
 	receiveUserDataFailure(data) {
