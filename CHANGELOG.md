@@ -1,3 +1,7 @@
+### v2.4.1	(2016/4/8 14:36)
+* Default to firstName if no displayName is found
+* Update eslint
+
 ### v2.4.0	(2015/10/23 11:28)
 * Add token prefix prop
 
